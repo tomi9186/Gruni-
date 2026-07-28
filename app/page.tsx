@@ -15,11 +15,10 @@ const formatDate = (date: Date): string => {
 };
 
 export default function Home() {
-  const [availableDates, setAvailableDates] = useState<string[]>([]);
-  const [defaultDate, setDefaultDate] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState(defaultDate);
+  const [selectedDate, setSelectedDate] = useState<string>(() => formatDate(new Date()));
+  const [lastGoodDate, setLastGoodDate] = useState<string>(selectedDate);
   const { data, isLoading, error, isLocal } =
-    useMatchData(defaultDate);
+    useMatchData(selectedDate);
 
   const [filters, setFilters] = useState<FilterState>({
     search: "",
@@ -49,26 +48,16 @@ export default function Home() {
     }
   }, [allLeagues]);
 
-  // Fetch available dates and set the initial date
+  // Revert to the last good date if the new date fails to load
   useEffect(() => {
-    const fetchManifest = async () => {
-      try {
-        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
-        const response = await fetch(`${basePath}/data/manifest.json`);
-        const manifest = await response.json();
-        const dates: string[] = manifest.available_dates.sort();
-        setAvailableDates(dates);
-
-        const todayStr = formatDate(new Date());
-        const initialDate = dates.includes(todayStr) ? todayStr : dates.find(d => d >= todayStr) || dates[dates.length - 1] || "";
-        setDefaultDate(initialDate);
-        setSelectedDate(initialDate);
-      } catch (e) {
-        console.error("Failed to load date manifest:", e);
-      }
-    };
-    fetchManifest();
-  }, []);
+    if (error) {
+      // If there's an error fetching the new date, revert to the last good one.
+      setSelectedDate(lastGoodDate);
+    } else if (!isLoading && data.length > 0) {
+      // If data loads successfully, the current date is good.
+      setLastGoodDate(selectedDate);
+    }
+  }, [error, isLoading, data, lastGoodDate, selectedDate]);
 
   // Memoized helper functions for performance
   const { getMainPrediction, getWinProbability, getMainOdds } = useMemo(() => {
@@ -267,7 +256,6 @@ export default function Home() {
           totalCount={data.length}
           allLeagues={allLeagues}
           selectedDate={selectedDate}
-          availableDates={availableDates}
           onDateChange={setSelectedDate}
         />
 

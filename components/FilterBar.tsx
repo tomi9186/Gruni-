@@ -21,7 +21,6 @@ interface FilterBarProps {
   totalCount: number;
   allLeagues: string[];
   selectedDate: string;
-  availableDates: string[];
   onDateChange: (date: string) => void;
 }
 
@@ -32,7 +31,6 @@ export function FilterBar({
   totalCount,
   allLeagues,
   selectedDate,
-  availableDates,
   onDateChange,
 }: FilterBarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -65,17 +63,14 @@ export function FilterBar({
   };
 
   const handleDateChange = (direction: 'prev' | 'next') => {
-    const currentIndex = availableDates.indexOf(selectedDate);
-    if (direction === 'prev' && currentIndex > 0) {
-      onDateChange(availableDates[currentIndex - 1]);
-    }
-    if (direction === 'next' && currentIndex < availableDates.length - 1) {
-      onDateChange(availableDates[currentIndex + 1]);
-    }
+    const currentDate = new Date(selectedDate + 'T12:00:00Z'); // Use noon to avoid timezone issues
+    const modifier = direction === 'prev' ? -1 : 1;
+    currentDate.setDate(currentDate.getDate() + modifier);
+    const year = currentDate.getFullYear();
+    const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+    const day = String(currentDate.getDate()).padStart(2, '0');
+    onDateChange(`${year}-${month}-${day}`);
   };
-
-  const canGoPrev = availableDates.indexOf(selectedDate) > 0;
-  const canGoNext = availableDates.indexOf(selectedDate) < availableDates.length - 1;
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
@@ -290,14 +285,14 @@ export function FilterBar({
       {/* Filter Summary */}
       <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => handleDateChange('prev')} disabled={!canGoPrev}>
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => handleDateChange('prev')}>
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div className="text-center">
             <p className="text-sm font-semibold text-gray-800">{new Date(selectedDate + 'T00:00:00').toLocaleDateString('hr-HR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
             <p className="text-xs text-gray-500">{new Date(selectedDate + 'T00:00:00').toLocaleDateString('hr-HR', { weekday: 'long' })}</p>
           </div>
-          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => handleDateChange('next')} disabled={!canGoNext}>
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => handleDateChange('next')}>
             <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
