@@ -165,7 +165,7 @@ export function MatchesTable({
                 } hover:bg-blue-50`}
               >
                 {/* Time & Status */}
-                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
+                <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
                   <div className="space-y-2">
                     <div className="flex justify-center">
                       {predictionCorrect === true && (
@@ -178,15 +178,17 @@ export function MatchesTable({
                         <div className="h-6 w-6" />
                       )}
                     </div>
-                    <p className="font-semibold text-gray-900 text-center">{kickoffTime}</p>
-                    <div className="flex justify-center">
-                      {getStatusBadge(match.status, match.score)}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
+                      <p className="font-semibold text-gray-900 text-center">{kickoffTime}</p>
+                      <div className="flex justify-center">
+                        {getStatusBadge(match.status, match.score)}
+                      </div>
                     </div>
                   </div>
                 </TableCell>
 
                 {/* League & Teams */}
-                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
+                <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
                   <div className="space-y-2">
                     <div>
                       <span className="text-xs font-bold text-gray-600 uppercase">
@@ -194,12 +196,10 @@ export function MatchesTable({
                       </span>
                       <p className="text-xs text-gray-500">{match.competition.country}</p>
                     </div>
-                    <div className="text-sm">
-                      <p className="font-semibold text-gray-900">
+                    <div className="text-sm sm:text-base">
+                      <p className="font-semibold text-gray-900 text-sm">
                         {match.home_team.name}
-                      </p>
-                      <p className="text-xs text-gray-500">vs</p>
-                      <p className="font-semibold text-gray-900">
+                        <span className="font-normal text-gray-500 text-xs mx-1">vs</span>
                         {match.away_team.name}
                       </p>
                     </div>
@@ -207,7 +207,7 @@ export function MatchesTable({
                 </TableCell>
 
                 {/* Prediction */}
-                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
+                <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
                   <div className="space-y-1">
                     <Badge variant="outline" className="bg-blue-50 text-blue-700 text-xs">
                       {match.predictions?.result?.toUpperCase() || "N/A"}
@@ -219,7 +219,7 @@ export function MatchesTable({
                 </TableCell>
 
                 {/* Probability */}
-                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
+                <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
                   <div className="space-y-2">
                     <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200">
                       <div
@@ -248,14 +248,14 @@ export function MatchesTable({
                 </TableCell>
 
                 {/* Odds */}
-                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
+                <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
                   <Badge className="bg-amber-100 text-amber-900 text-base font-bold">
                     {mainOdds.toFixed(2)}
                   </Badge>
                 </TableCell>
 
                 {/* Result */}
-                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
+                <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
                   {match.status === "FT" ? (
                     <Badge className="bg-gray-600">
                       FT {match.score.home}-{match.score.away}
