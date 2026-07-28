@@ -138,9 +138,6 @@ export function MatchesTable({
             <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
               Predviđanje / Tip
             </TableHead>
-            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6 hidden md:table-cell">
-              Sve Oklade
-            </TableHead>
             <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
               <SortHeader
                 label="Vjerojatnost %"
@@ -158,6 +155,9 @@ export function MatchesTable({
                 currentOrder={sortOrder}
                 onSort={onSort}
               />
+            </TableHead>
+            <TableHead className="px-1 py-3 text-center sm:px-2">
+              <span className="sr-only">Proširi</span>
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -269,14 +269,6 @@ function MatchRow({ match, kickoffTime, mainPrediction, predictionResult, isEven
           </div>
         </TableCell>
 
-        {/* All Bets Button */}
-        <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6 hidden md:table-cell">
-          <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)}>
-            Sve oklade
-            <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-          </Button>
-        </TableCell>
-
         {/* Probability */}
         <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
           <div className="space-y-2">
@@ -309,6 +301,13 @@ function MatchRow({ match, kickoffTime, mainPrediction, predictionResult, isEven
           <Badge className="bg-amber-100 text-amber-900 text-base font-bold">
             {mainPrediction.odd.toFixed(2)}
           </Badge>
+        </TableCell>
+
+        {/* All Bets Button */}
+        <TableCell className="px-1 py-2 text-center sm:px-2">
+          <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 bg-gray-100 hover:bg-gray-200" onClick={() => setExpanded(!expanded)}>
+            <ChevronDown className={`h-5 w-5 text-gray-600 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+          </Button>
         </TableCell>
       </TableRow>
       {expanded && (
