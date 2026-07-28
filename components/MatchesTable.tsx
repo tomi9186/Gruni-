@@ -24,6 +24,7 @@ interface MatchesTableProps {
   sortOrder: "asc" | "desc";
   onSort: (field: "time" | "league" | "probability" | "odds") => void;
   getMainPrediction: (match: Match) => { prediction: string; probability: number; odd: number };
+  checkPredictionCorrect: (match: Match) => boolean | null;
 }
 
 const SortHeader = ({
@@ -109,6 +110,7 @@ export function MatchesTable({
   sortOrder,
   onSort,
   getMainPrediction,
+  checkPredictionCorrect,
 }: MatchesTableProps) {
   return (
     <div className="overflow-y-auto rounded-lg border border-gray-200 bg-white relative max-h-[70vh]">
@@ -171,7 +173,8 @@ export function MatchesTable({
                 key={match.match_id}
                 match={match}
                 kickoffTime={kickoffTime}
-                mainPrediction={getMainPrediction(match)}
+                mainPrediction={getMainPrediction(match)} // This is correct
+                predictionResult={checkPredictionCorrect(match)}
                 isEven={index % 2 === 0}
               />
             );
@@ -188,10 +191,11 @@ export function MatchesTable({
   );
 }
 
-function MatchRow({ match, kickoffTime, mainPrediction, isEven }: { 
+function MatchRow({ match, kickoffTime, mainPrediction, predictionResult, isEven }: { 
   match: Match, 
   kickoffTime: string, 
   mainPrediction: { prediction: string; probability: number; odd: number },
+  predictionResult: boolean | null,
   isEven: boolean 
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -214,9 +218,10 @@ function MatchRow({ match, kickoffTime, mainPrediction, isEven }: {
   return (
     <>
       <TableRow
-        className={`border-b border-gray-100 ${
-          isEven ? "bg-white" : "bg-gray-50"
-        } hover:bg-blue-50/50`}
+        className={`border-b border-gray-100 hover:bg-blue-50/50 ${
+          predictionResult === true ? 'bg-green-50/50' : 
+          predictionResult === false ? 'bg-red-50/50' : 
+          isEven ? "bg-white" : "bg-gray-50"}`}
       >
         {/* Time & Status */}
         <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">

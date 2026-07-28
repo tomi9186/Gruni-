@@ -85,6 +85,36 @@ export default function Home() {
     return { getMainPrediction, getWinProbability, getMainOdds };
   }, []);
 
+  const checkPredictionCorrect = useCallback((match: Match): boolean | null => {
+    if (match.status !== "FT") return null;
+    
+    const { prediction } = getMainPrediction(match);
+    const { home, away, ht_home, ht_away } = match.score;
+
+    if (home === null || away === null) return null;
+
+    const totalScore = home + away;
+    const fhTotalScore = (ht_home ?? 0) + (ht_away ?? 0);
+
+    switch (prediction) {
+      case "home_win": return home > away;
+      case "away_win": return away > home;
+      case "draw": return home === away;
+      case "btts": return home > 0 && away > 0;
+      case "over_15": return totalScore > 1.5;
+      case "over_25": return totalScore > 2.5;
+      case "over_35": return totalScore > 3.5;
+      case "fh_over_05": return fhTotalScore > 0.5;
+      case "fh_over_15": return fhTotalScore > 1.5;
+      // Note: Double chance (1X, X2, 12) are not included in getMainPrediction logic
+      // but could be added here if needed.
+      // case "home_or_draw": return home >= away;
+      // case "away_or_draw": return away >= home;
+      // case "home_or_away": return home !== away;
+      default: return null;
+    }
+  }, [getMainPrediction]);
+
   const getTimeInMinutes = useCallback((kickoffTime: string): number => {
     const date = new Date(kickoffTime);
     return date.getHours() * 60 + date.getMinutes();
@@ -215,6 +245,7 @@ export default function Home() {
           sortOrder={sortOrder}
           onSort={handleSort}
           getMainPrediction={getMainPrediction}
+          checkPredictionCorrect={checkPredictionCorrect}
         />
       </div>
     </main>
