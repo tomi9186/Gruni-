@@ -2,8 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Match } from "@/lib/types";
-import { useRouter } from "next/navigation";
-export function useMatchData(date: string, basePath: string) {
+
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+
+export function useMatchData(date: string) {
   const [data, setData] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +32,7 @@ export function useMatchData(date: string, basePath: string) {
     };
 
     loadData();
-  }, [date, basePath]);
+  }, [date]);
 
   return {
     data,
