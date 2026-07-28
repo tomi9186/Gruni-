@@ -183,14 +183,14 @@ export function MatchesTable({
             const predictionCorrect = checkPredictionCorrect(match);
 
             return (
-              <TableRow
+              <MatchRow
                 key={match.match_id}
-                className={`border-b border-gray-100 ${
-                  index % 2 === 0 ? "bg-white" : "bg-gray-50"
-                } hover:bg-blue-50/50`}
-              >
-                <MatchRow match={match} kickoffTime={kickoffTime} winProb={winProb} predictionCorrect={predictionCorrect} />
-              </TableRow>
+                match={match}
+                kickoffTime={kickoffTime}
+                winProb={winProb}
+                predictionCorrect={predictionCorrect}
+                isEven={index % 2 === 0}
+              />
             );
           })}
         </TableBody>
@@ -205,7 +205,7 @@ export function MatchesTable({
   );
 }
 
-function MatchRow({ match, kickoffTime, winProb, predictionCorrect }: { match: Match, kickoffTime: string, winProb: number, predictionCorrect: boolean | null }) {
+function MatchRow({ match, kickoffTime, winProb, predictionCorrect, isEven }: { match: Match, kickoffTime: string, winProb: number, predictionCorrect: boolean | null, isEven: boolean }) {
   const [expanded, setExpanded] = useState(false);
 
   const mainOdds = parseFloat(match.odds?.home_win || "0") || parseFloat(match.odds?.draw || "0") || parseFloat(match.odds?.away_win || "0") || 1.5;
@@ -227,7 +227,11 @@ function MatchRow({ match, kickoffTime, winProb, predictionCorrect }: { match: M
 
   return (
     <>
-      <TableRow>
+      <TableRow
+        className={`border-b border-gray-100 ${
+          isEven ? "bg-white" : "bg-gray-50"
+        } hover:bg-blue-50/50`}
+      >
         {/* Time & Status */}
         <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
           <div className="space-y-2">
