@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useState } from "react";
 import {
   TableBody,
@@ -10,12 +11,10 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Match } from "@/lib/types";
+import { Match, Predictions } from "@/lib/types";
 import {
   ArrowUp,
   ArrowDown,
-  CheckCircle2,
-  XCircle,
   ChevronDown,
 } from "lucide-react";
 
@@ -24,6 +23,7 @@ interface MatchesTableProps {
   sortBy: "time" | "league" | "probability" | "odds";
   sortOrder: "asc" | "desc";
   onSort: (field: "time" | "league" | "probability" | "odds") => void;
+  getMainPrediction: (match: Match) => { prediction: string; probability: number; odd: number };
 }
 
 const SortHeader = ({
@@ -57,62 +57,48 @@ const SortHeader = ({
 );
 
 const getStatusBadge = (status: string, score?: { home: number; away: number } | null) => {
-  if (status === "FT") {
+  switch (status) {
+    case "FT":
+      return (
+        <Badge className="bg-gray-600 text-white">
+          FT {score ? `${score.home}-${score.away}` : ""}
+        </Badge>
+      );
+    case "LIVE":
+      return <Badge className="bg-red-600 text-white animate-pulse">LIVE</Badge>;
+    default:
+      return <Badge className="bg-blue-100 text-blue-800">NS</Badge>;
+  }
+};
+
+const FormBadge = ({ result }: { result: string }) => {
+  const baseClasses = "w-5 h-5 flex items-center justify-center rounded-full text-xs font-bold text-white";
+  if (result === "W") {
     return (
-      <Badge className="bg-gray-600">
-        FT {score ? `${score.home}-${score.away}` : ""}
-      </Badge>
+      <div className={`${baseClasses} bg-green-500`} title="Pobjeda">P</div>
     );
   }
-  if (status === "LIVE") return <Badge className="bg-red-600 animate-pulse">LIVE</Badge>;
-  return <Badge variant="outline">Scheduled</Badge>;
-};
-
-const getWinProbability = (match: Match): number => {
-  if (!match?.predictions?.result) return 50;
-  const prediction = match.predictions.result.toLowerCase();
-  if (prediction.includes("1")) return match.probabilities?.home_win || 50;
-  if (prediction.includes("2")) return match.probabilities?.away_win || 50;
-  if (prediction.includes("x") || prediction.includes("draw")) return match.probabilities?.draw || 50;
-  if (prediction.includes("over")) return match.probabilities?.over_25 || 50;
-  return 50;
-};
-
-const checkPredictionCorrect = (match: Match): boolean | null => {
-  if (match.status !== "FT" || !match.predictions?.result) return null;
-  
-  const prediction = match.predictions.result.toLowerCase();
-  const homeScore = match.score?.home ?? -1;
-  const awayScore = match.score?.away ?? -1;
-  
-  if (homeScore === -1 || awayScore === -1) return null;
-  
-  if (prediction.includes("1")) {
-    return homeScore > awayScore;
+  if (result === "D") {
+    return <div className={`${baseClasses} bg-gray-400`} title="Neriješeno">N</div>;
   }
-  if (prediction.includes("2")) {
-    return awayScore > homeScore;
-  }
-  if (prediction.includes("x") || prediction.includes("draw")) {
-    return homeScore === awayScore;
-  }
-  if (prediction.includes("over2.5")) {
-    return homeScore + awayScore > 2.5;
-  }
-  return null;
+  return <div className={`${baseClasses} bg-red-500`} title="Izgubljeno">I</div>;
 };
 
 const translatePrediction = (prediction: string | undefined): string => {
   if (!prediction) return "N/A";
-  const p = prediction.toLowerCase();
-  switch (p) {
+  switch (prediction) {
     case "home_win": return "1";
     case "away_win": return "2";
     case "draw": return "X";
     case "home_or_draw": return "1X";
     case "away_or_draw": return "X2";
     case "home_or_away": return "12";
-    case "over2.5": return "Više od 2.5";
+    case "btts": return "Oba daju gol";
+    case "over_15": return "Više od 1.5";
+    case "over_25": return "Više od 2.5";
+    case "over_35": return "Više od 3.5";
+    case "fh_over_05": return "1. pol 0.5+";
+    case "fh_over_15": return "1. pol 1.5+";
     default: return prediction.toUpperCase();
   }
 };
@@ -122,6 +108,7 @@ export function MatchesTable({
   sortBy,
   sortOrder,
   onSort,
+  getMainPrediction,
 }: MatchesTableProps) {
   return (
     <div className="overflow-y-auto rounded-lg border border-gray-200 bg-white relative max-h-[70vh]">
@@ -170,7 +157,6 @@ export function MatchesTable({
                 onSort={onSort}
               />
             </TableHead>
-            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">Rezultat</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -179,16 +165,13 @@ export function MatchesTable({
               "hr-HR",
               { hour: "2-digit", minute: "2-digit" }
             );
-            const winProb = getWinProbability(match);
-            const predictionCorrect = checkPredictionCorrect(match);
 
             return (
               <MatchRow
                 key={match.match_id}
                 match={match}
                 kickoffTime={kickoffTime}
-                winProb={winProb}
-                predictionCorrect={predictionCorrect}
+                mainPrediction={getMainPrediction(match)}
                 isEven={index % 2 === 0}
               />
             );
@@ -205,10 +188,13 @@ export function MatchesTable({
   );
 }
 
-function MatchRow({ match, kickoffTime, winProb, predictionCorrect, isEven }: { match: Match, kickoffTime: string, winProb: number, predictionCorrect: boolean | null, isEven: boolean }) {
+function MatchRow({ match, kickoffTime, mainPrediction, isEven }: { 
+  match: Match, 
+  kickoffTime: string, 
+  mainPrediction: { prediction: string; probability: number; odd: number },
+  isEven: boolean 
+}) {
   const [expanded, setExpanded] = useState(false);
-
-  const mainOdds = parseFloat(match.odds?.home_win || "0") || parseFloat(match.odds?.draw || "0") || parseFloat(match.odds?.away_win || "0") || 1.5;
 
   const allBets = [
     { label: "1", prob: match.probabilities?.home_win, odd: match.odds?.home_win },
@@ -234,18 +220,9 @@ function MatchRow({ match, kickoffTime, winProb, predictionCorrect, isEven }: { 
       >
         {/* Time & Status */}
         <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
-          <div className="space-y-2">
+          <div className="flex flex-col items-center justify-center gap-2">
+            <p className="font-semibold text-gray-900 text-center">{kickoffTime}</p>
             <div className="flex justify-center">
-              {predictionCorrect === true && (
-                <CheckCircle2 className="h-6 w-6 text-green-600" title="Točno predviđanje" />
-              )}
-              {predictionCorrect === false && (
-                <XCircle className="h-6 w-6 text-red-600" title="Netočno predviđanje" />
-              )}
-              {predictionCorrect === null && <div className="h-6 w-6" />}
-            </div>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2">
-              <p className="font-semibold text-gray-900 text-center">{kickoffTime}</p>
               <div className="flex justify-center">
                 {getStatusBadge(match.status, match.score)}
               </div>
@@ -255,7 +232,7 @@ function MatchRow({ match, kickoffTime, winProb, predictionCorrect, isEven }: { 
 
         {/* League & Teams */}
         <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
-          <div className="space-y-2">
+          <div className="space-y-1">
             <div>
               <span className="text-xs font-bold text-gray-600 uppercase">
                 {match.competition.name}
@@ -268,6 +245,12 @@ function MatchRow({ match, kickoffTime, winProb, predictionCorrect, isEven }: { 
                 <span className="font-normal text-gray-500 text-xs mx-1">vs</span>
                 {match.away_team.name}
               </p>
+              <div className="flex items-center gap-1 mt-1">
+                <span className="text-xs font-medium text-gray-500">Forma:</span>
+                {match.form.home.split('').map((r, i) => <FormBadge key={`h-${i}`} result={r} />)}
+                <span className="mx-1 text-gray-300">|</span>
+                {match.form.away.split('').map((r, i) => <FormBadge key={`a-${i}`} result={r} />)}
+              </div>
             </div>
           </div>
         </TableCell>
@@ -276,7 +259,7 @@ function MatchRow({ match, kickoffTime, winProb, predictionCorrect, isEven }: { 
         <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
           <div className="space-y-1">
             <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 font-bold text-sm">
-              {translatePrediction(match.predictions?.result)}
+              {translatePrediction(mainPrediction.prediction)}
             </Badge>
           </div>
         </TableCell>
@@ -294,24 +277,24 @@ function MatchRow({ match, kickoffTime, winProb, predictionCorrect, isEven }: { 
           <div className="space-y-2">
             <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200">
               <div
-                className={`h-full ${winProb >= 70
+                className={`h-full ${mainPrediction.probability >= 70
                     ? "bg-green-500"
-                    : winProb >= 50
+                    : mainPrediction.probability >= 50
                       ? "bg-yellow-500"
                       : "bg-orange-500"
                   }`}
-                style={{ width: `${winProb}%` }}
+                style={{ width: `${mainPrediction.probability}%` }}
               />
             </div>
             <Badge
-              className={`${winProb >= 70
+              className={`${mainPrediction.probability >= 70
                   ? "bg-green-100 text-green-800"
-                  : winProb >= 50
+                  : mainPrediction.probability >= 50
                     ? "bg-yellow-100 text-yellow-800"
                     : "bg-orange-100 text-orange-800"
                 }`}
             >
-              {winProb}%
+              {mainPrediction.probability}%
             </Badge>
           </div>
         </TableCell>
@@ -319,21 +302,8 @@ function MatchRow({ match, kickoffTime, winProb, predictionCorrect, isEven }: { 
         {/* Odds */}
         <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
           <Badge className="bg-amber-100 text-amber-900 text-base font-bold">
-            {mainOdds.toFixed(2)}
+            {mainPrediction.odd.toFixed(2)}
           </Badge>
-        </TableCell>
-
-        {/* Result */}
-        <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
-          {match.status === "FT" ? (
-            <Badge className="bg-gray-600">
-              FT {match.score.home}-{match.score.away}
-            </Badge>
-          ) : match.status === "LIVE" ? (
-            <Badge className="bg-red-600 animate-pulse">LIVE</Badge>
-          ) : (
-            <Badge variant="outline">NS</Badge>
-          )}
         </TableCell>
       </TableRow>
       {expanded && (

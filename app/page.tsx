@@ -7,53 +7,6 @@ import { MatchesTable } from "@/components/MatchesTable";
 import { useMatchData } from "@/hooks/useMatchData";
 import { FilterState, Match } from "@/lib/types";
 
-// Helper functions outside component
-const getWinProbability = (match: Match): number => {
-  if (!match?.predictions?.result) return 50;
-  const prediction = match.predictions.result.toLowerCase();
-  if (prediction.includes("1")) return match.probabilities?.home_win || 50;
-  if (prediction.includes("2")) return match.probabilities?.away_win || 50;
-  if (prediction.includes("x") || prediction.includes("draw")) return match.probabilities?.draw || 50;
-  if (prediction.includes("over")) return match.probabilities?.over_25 || 50;
-  return 50;
-};
-
-const getMainOdds = (match: Match): number => {
-  const odds = match?.odds;
-  if (!odds) return 1.5;
-  const mainOdds = parseFloat(odds.home_win) || parseFloat(odds.draw) || parseFloat(odds.away_win) || 1.5;
-  return mainOdds;
-};
-
-const getTimeInMinutes = (kickoffTime: string): number => {
-  const date = new Date(kickoffTime);
-  return date.getHours() * 60 + date.getMinutes();
-};
-
-const checkPredictionCorrect = (match: Match): boolean | null => {
-  if (match.status !== "FT" || !match.predictions?.result) return null;
-  
-  const prediction = match.predictions.result.toLowerCase();
-  const homeScore = match.score?.home ?? -1;
-  const awayScore = match.score?.away ?? -1;
-  
-  if (homeScore === -1 || awayScore === -1) return null;
-  
-  if (prediction.includes("1")) {
-    return homeScore > awayScore;
-  }
-  if (prediction.includes("2")) {
-    return awayScore > homeScore;
-  }
-  if (prediction.includes("x") || prediction.includes("draw")) {
-    return homeScore === awayScore;
-  }
-  if (prediction.includes("over2.5")) {
-    return homeScore + awayScore > 2.5;
-  }
-  return null;
-};
-
 export default function Home() {
   const defaultDate = "2026-07-27";
   const [selectedDate, setSelectedDate] = useState(defaultDate);
@@ -87,6 +40,55 @@ export default function Home() {
       setFilters(prev => ({ ...prev, selectedLeagues: allLeagues }));
     }
   }, [allLeagues]);
+
+  // Memoized helper functions for performance
+  const { getMainPrediction, getWinProbability, getMainOdds } = useMemo(() => {
+    const getMainPrediction = (match: Match) => {
+      const { probabilities, odds } = match;
+      if (!probabilities || !odds) return { prediction: "N/A", probability: 0, odd: 0 };
+
+      const betOptions = [
+        { key: "home_win", prob: probabilities.home_win, odd: odds.home_win },
+        { key: "away_win", prob: probabilities.away_win, odd: odds.away_win },
+        { key: "draw", prob: probabilities.draw, odd: odds.draw },
+        { key: "btts", prob: probabilities.btts, odd: odds.btts_yes },
+        { key: "over_25", prob: probabilities.over_25, odd: odds.over_25 },
+        { key: "over_15", prob: probabilities.over_15, odd: odds.over_15 },
+        { key: "over_35", prob: probabilities.over_35, odd: odds.over_35 },
+        { key: "fh_over_05", prob: probabilities.fh_over_05, odd: odds.fh_over_05 },
+        { key: "fh_over_15", prob: probabilities.fh_over_15, odd: odds.fh_over_15 },
+      ];
+
+      const sortedOptions = betOptions
+        .filter(option => option.prob && option.odd && parseFloat(option.odd) > 0)
+        .sort((a, b) => b.prob! - a.prob!);
+
+      const bestBet = sortedOptions.find(option => parseFloat(option.odd!) > 1.20) || sortedOptions[0];
+
+      if (!bestBet) return { prediction: "N/A", probability: 0, odd: 0 };
+
+      return {
+        prediction: bestBet.key,
+        probability: bestBet.prob!,
+        odd: parseFloat(bestBet.odd!),
+      };
+    };
+
+    const getWinProbability = (match: Match): number => {
+      return getMainPrediction(match).probability;
+    };
+
+    const getMainOdds = (match: Match): number => {
+      return getMainPrediction(match).odd;
+    };
+
+    return { getMainPrediction, getWinProbability, getMainOdds };
+  }, []);
+
+  const getTimeInMinutes = useCallback((kickoffTime: string): number => {
+    const date = new Date(kickoffTime);
+    return date.getHours() * 60 + date.getMinutes();
+  }, []);
 
   // Apply filters
   const filteredMatches = useMemo(() => {
@@ -133,7 +135,7 @@ export default function Home() {
     }
 
     return filtered;
-  }, [data, filters]);
+  }, [data, filters, getMainOdds, getWinProbability, getTimeInMinutes]);
 
   // Apply sorting
   const sortedMatches = useMemo(() => {
@@ -173,7 +175,7 @@ export default function Home() {
       return sortOrder === "asc" ? aVal - bVal : bVal - aVal;
     });
     return sorted;
-  }, [filteredMatches, sortBy, sortOrder]);
+  }, [filteredMatches, sortBy, sortOrder, getWinProbability, getMainOdds]);
 
   const handleSort = (field: "time" | "league" | "probability" | "odds") => {
     if (sortBy === field) {
@@ -212,6 +214,7 @@ export default function Home() {
           sortBy={sortBy}
           sortOrder={sortOrder}
           onSort={handleSort}
+          getMainPrediction={getMainPrediction}
         />
       </div>
     </main>
