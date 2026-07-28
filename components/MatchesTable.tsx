@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Match } from "@/lib/types";
-import { ArrowUp, ArrowDown } from "lucide-react";
+import { ArrowUp, ArrowDown, CheckCircle2, XCircle } from "lucide-react";
 
 interface MatchesTableProps {
   matches: Match[];
@@ -71,6 +71,30 @@ const getWinProbability = (match: Match): number => {
   return 50;
 };
 
+const checkPredictionCorrect = (match: Match): boolean | null => {
+  if (match.status !== "FT" || !match.predictions?.result) return null;
+  
+  const prediction = match.predictions.result.toLowerCase();
+  const homeScore = match.score?.home ?? -1;
+  const awayScore = match.score?.away ?? -1;
+  
+  if (homeScore === -1 || awayScore === -1) return null;
+  
+  if (prediction.includes("1")) {
+    return homeScore > awayScore;
+  }
+  if (prediction.includes("2")) {
+    return awayScore > homeScore;
+  }
+  if (prediction.includes("x") || prediction.includes("draw")) {
+    return homeScore === awayScore;
+  }
+  if (prediction.includes("over2.5")) {
+    return homeScore + awayScore > 2.5;
+  }
+  return null;
+};
+
 export function MatchesTable({
   matches,
   sortBy,
@@ -80,11 +104,11 @@ export function MatchesTable({
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
       <Table>
-        <TableHeader>
+        <TableHeader className="sticky top-0 z-10">
           <TableRow className="border-b border-gray-200 bg-gray-50">
             <TableHead className="px-6 py-3 text-left">
               <SortHeader
-                label="Vreme & Status"
+                label="Vrijeme & Status"
                 field="time"
                 currentSort={sortBy}
                 currentOrder={sortOrder}
@@ -105,7 +129,7 @@ export function MatchesTable({
             </TableHead>
             <TableHead className="px-6 py-3 text-left">
               <SortHeader
-                label="Verovatnoća %"
+                label="Vjerojatnost %"
                 field="probability"
                 currentSort={sortBy}
                 currentOrder={sortOrder}
@@ -132,6 +156,7 @@ export function MatchesTable({
             });
             const winProb = getWinProbability(match);
             const mainOdds = parseFloat(match.odds?.home_win || "0") || parseFloat(match.odds?.draw || "0") || parseFloat(match.odds?.away_win || "0") || 1.5;
+            const predictionCorrect = checkPredictionCorrect(match);
 
             return (
               <TableRow
@@ -143,7 +168,15 @@ export function MatchesTable({
                 {/* Time & Status */}
                 <TableCell className="px-6 py-4">
                   <div className="space-y-1">
-                    <p className="font-semibold text-gray-900">{kickoffTime}</p>
+                    <div className="flex items-center gap-2">
+                      {predictionCorrect === true && (
+                        <CheckCircle2 className="h-5 w-5 text-green-600" title="Točno predviđanje" />
+                      )}
+                      {predictionCorrect === false && (
+                        <XCircle className="h-5 w-5 text-red-600" title="Netočno predviđanje" />
+                      )}
+                      <p className="font-semibold text-gray-900">{kickoffTime}</p>
+                    </div>
                     {getStatusBadge(match.status, match.score)}
                   </div>
                 </TableCell>

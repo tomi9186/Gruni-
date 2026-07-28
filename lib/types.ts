@@ -95,6 +95,9 @@ export interface FilterState {
   minOdds: number;
   maxOdds: number;
   minProbability: number;
+  minTime: number; // 0-1440 (minutes from 00:00)
+  maxTime: number; // 0-1440 (minutes from 00:00)
+  selectedLeagues: string[]; // competition.name array
 }
 
 export interface MatchDataState {

@@ -18,6 +18,7 @@ interface FilterBarProps {
   onFilterChange: (filters: FilterState) => void;
   matchCount: number;
   totalCount: number;
+  allLeagues: string[];
 }
 
 export function FilterBar({
@@ -25,6 +26,7 @@ export function FilterBar({
   onFilterChange,
   matchCount,
   totalCount,
+  allLeagues,
 }: FilterBarProps) {
   const handleReset = () => {
     onFilterChange({
@@ -32,6 +34,9 @@ export function FilterBar({
       minOdds: 1.0,
       maxOdds: 10.0,
       minProbability: 0,
+      minTime: 0,
+      maxTime: 1440,
+      selectedLeagues: allLeagues,
     });
   };
 
@@ -43,12 +48,18 @@ export function FilterBar({
     });
   };
 
+  const formatTime = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+  };
+
   return (
     <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
       {/* Search */}
       <div>
         <label className="mb-2 block text-sm font-medium text-gray-700">
-          Pretraga Tima ili Lige
+          Pretraži Tim ili Ligu
         </label>
         <Input
           placeholder="npr. Bayern, Manchester, Premier League"
@@ -64,7 +75,7 @@ export function FilterBar({
       <div className="space-y-3">
         <label className="block text-sm font-medium text-gray-700">
           Raspon Kvota: {filters.minOdds.toFixed(2)} - {filters.maxOdds.toFixed(2)}
-        </label>
+        </label> 
         <div className="space-y-2">
           <Slider
             value={[filters.minOdds, filters.maxOdds]}
@@ -122,7 +133,7 @@ export function FilterBar({
       {/* Probability Slider */}
       <div>
         <label className="mb-3 block text-sm font-medium text-gray-700">
-          Min Verovatnoća Dobitka: {filters.minProbability}%
+          Min Vjerojatnost Pobjede: {filters.minProbability}%
         </label>
         <Slider
           value={[filters.minProbability]}
@@ -136,6 +147,97 @@ export function FilterBar({
         />
       </div>
 
+      {/* Time Range Filter */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-gray-700">
+          Vrijeme početka: {formatTime(filters.minTime)} - {formatTime(filters.maxTime)}
+        </label>
+        <div className="space-y-2">
+          <Slider
+            value={[filters.minTime, filters.maxTime]}
+            onValueChange={(value) =>
+              onFilterChange({ ...filters, minTime: value[0], maxTime: value[1] })
+            }
+            min={0}
+            max={1440}
+            step={15}
+            className="w-full"
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">
+                Od (Od)
+              </label>
+              <Input
+                type="time"
+                value={formatTime(filters.minTime)}
+                onChange={(e) => {
+                  const [hours, minutes] = e.target.value.split(":").map(Number);
+                  if (!isNaN(hours) && !isNaN(minutes)) {
+                    onFilterChange({
+                      ...filters,
+                      minTime: hours * 60 + minutes,
+                    });
+                  }
+                }}
+                className="h-9 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">
+                Do (Do)
+              </label>
+              <Input
+                type="time"
+                value={formatTime(filters.maxTime)}
+                onChange={(e) => {
+                  const [hours, minutes] = e.target.value.split(":").map(Number);
+                  if (!isNaN(hours) && !isNaN(minutes)) {
+                    onFilterChange({
+                      ...filters,
+                      maxTime: hours * 60 + minutes,
+                    });
+                  }
+                }}
+                className="h-9 text-sm"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* League Filter */}
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-700">
+          Liga ({filters.selectedLeagues.length} od {allLeagues.length})
+        </label>
+        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded p-2 bg-gray-50">
+          {allLeagues.map((league) => (
+            <label key={league} className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
+              <input
+                type="checkbox"
+                checked={filters.selectedLeagues.includes(league)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    onFilterChange({
+                      ...filters,
+                      selectedLeagues: [...filters.selectedLeagues, league],
+                    });
+                  } else {
+                    onFilterChange({
+                      ...filters,
+                      selectedLeagues: filters.selectedLeagues.filter(l => l !== league),
+                    });
+                  }
+                }}
+                className="cursor-pointer"
+              />
+              <span className="text-sm text-gray-700">{league}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
       {/* Action Buttons */}
       <div className="flex gap-3">
         <Button
@@ -143,7 +245,7 @@ export function FilterBar({
           variant="outline"
           className="flex-1"
         >
-          High Value Bets (2.0+)
+          Visoke Kvote (2.0+)
         </Button>
 
         <Button
@@ -152,15 +254,15 @@ export function FilterBar({
           className="flex-1"
         >
           <X className="mr-2 h-4 w-4" />
-          Reset
+          Resetiraj
         </Button>
       </div>
 
       {/* Filter Summary */}
       <div className="border-t border-gray-100 pt-3">
         <span className="text-sm font-medium text-gray-600">
-          Showing <span className="text-indigo-600 font-semibold">{matchCount}</span> of{" "}
-          <span className="text-gray-900 font-semibold">{totalCount}</span> matches
+          Prikazano <span className="text-indigo-600 font-semibold">{matchCount}</span> od{" "}
+          <span className="text-gray-900 font-semibold">{totalCount}</span> utakmica
         </span>
       </div>
     </div>
