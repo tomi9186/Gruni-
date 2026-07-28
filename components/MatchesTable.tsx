@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Table,
   TableBody,
   TableCell,
   TableHead,
@@ -102,9 +101,9 @@ export function MatchesTable({
   onSort,
 }: MatchesTableProps) {
   return (
-    <div className="overflow-auto rounded-lg border border-gray-200 bg-white relative max-h-[70vh]">
-      <Table>
-        <TableHeader className="sticky top-0 z-10 bg-gray-50">
+    <div className="overflow-y-auto rounded-lg border border-gray-200 bg-white relative max-h-[70vh]">
+      <table className="w-full caption-bottom text-sm">
+        <TableHeader className="sticky top-0 z-10 bg-gray-50/80 backdrop-blur-sm">
           <TableRow className="border-b border-gray-200 bg-gray-50">
             <TableHead className="px-6 py-3 text-left">
               <SortHeader
@@ -271,7 +270,7 @@ export function MatchesTable({
             );
           })}
         </TableBody>
-      </Table>
+      </table>
 
       {matches.length === 0 && (
         <div className="flex h-64 items-center justify-center text-gray-500">
