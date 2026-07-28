@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
 import { FilterState } from "@/lib/types";
-import { X, SlidersHorizontal } from "lucide-react";
+import { X, SlidersHorizontal, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface FilterBarProps {
   filters: FilterState;
@@ -20,6 +20,9 @@ interface FilterBarProps {
   matchCount: number;
   totalCount: number;
   allLeagues: string[];
+  selectedDate: string;
+  availableDates: string[];
+  onDateChange: (date: string) => void;
 }
 
 export function FilterBar({
@@ -28,6 +31,9 @@ export function FilterBar({
   matchCount,
   totalCount,
   allLeagues,
+  selectedDate,
+  availableDates,
+  onDateChange,
 }: FilterBarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -48,6 +54,20 @@ export function FilterBar({
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
+  };
+
+  const handleDateChange = (direction: 'prev' | 'next') => {
+    const currentIndex = availableDates.indexOf(selectedDate);
+    if (direction === 'prev' && currentIndex > 0) {
+      onDateChange(availableDates[currentIndex - 1]);
+    }
+    if (direction === 'next' && currentIndex < availableDates.length - 1) {
+      onDateChange(availableDates[currentIndex + 1]);
+    }
+  };
+
+  const canGoPrev = availableDates.indexOf(selectedDate) > 0;
+  const canGoNext = availableDates.indexOf(selectedDate) < availableDates.length - 1;
   };
 
   return (
@@ -261,11 +281,25 @@ export function FilterBar({
       )}
 
       {/* Filter Summary */}
-      <div className="border-t border-gray-200 pt-4 mt-4">
-        <span className="text-sm font-medium text-gray-600">
-          Prikazano <span className="text-indigo-600 font-semibold">{matchCount}</span> od{" "}
-          <span className="text-gray-900 font-semibold">{totalCount}</span> utakmica
-        </span>
+      <div className="border-t border-gray-200 pt-4 mt-4 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => handleDateChange('prev')} disabled={!canGoPrev}>
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div className="text-center">
+            <p className="text-sm font-semibold text-gray-800">{new Date(selectedDate + 'T00:00:00').toLocaleDateString('hr-HR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</p>
+            <p className="text-xs text-gray-500">{new Date(selectedDate + 'T00:00:00').toLocaleDateString('hr-HR', { weekday: 'long' })}</p>
+          </div>
+          <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => handleDateChange('next')} disabled={!canGoNext}>
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+        <div className="text-right">
+          <span className="text-sm font-medium text-gray-600">
+            Prikazano <span className="text-indigo-600 font-semibold">{matchCount}</span> od{" "}
+            <span className="text-gray-900 font-semibold">{totalCount}</span> utakmica
+          </span>
+        </div>
       </div>
     </div>
   );

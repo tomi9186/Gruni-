@@ -1,14 +1,22 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { FilterBar } from "@/components/FilterBar";
 import { MatchesTable } from "@/components/MatchesTable";
 import { useMatchData } from "@/hooks/useMatchData";
 import { FilterState, Match } from "@/lib/types";
 
+const formatDate = (date: Date): string => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function Home() {
-  const defaultDate = "2026-07-27";
+  const [availableDates, setAvailableDates] = useState<string[]>([]);
+  const [defaultDate, setDefaultDate] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const { data, isLoading, error, isLocal } =
     useMatchData(defaultDate);
@@ -40,6 +48,27 @@ export default function Home() {
       setFilters(prev => ({ ...prev, selectedLeagues: allLeagues }));
     }
   }, [allLeagues]);
+
+  // Fetch available dates and set the initial date
+  useEffect(() => {
+    const fetchManifest = async () => {
+      try {
+        const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
+        const response = await fetch(`${basePath}/data/manifest.json`);
+        const manifest = await response.json();
+        const dates: string[] = manifest.available_dates.sort();
+        setAvailableDates(dates);
+
+        const todayStr = formatDate(new Date());
+        const initialDate = dates.includes(todayStr) ? todayStr : dates.find(d => d >= todayStr) || dates[dates.length - 1] || "";
+        setDefaultDate(initialDate);
+        setSelectedDate(initialDate);
+      } catch (e) {
+        console.error("Failed to load date manifest:", e);
+      }
+    };
+    fetchManifest();
+  }, []);
 
   // Memoized helper functions for performance
   const { getMainPrediction, getWinProbability, getMainOdds } = useMemo(() => {
@@ -237,6 +266,9 @@ export default function Home() {
           matchCount={sortedMatches.length}
           totalCount={data.length}
           allLeagues={allLeagues}
+          selectedDate={selectedDate}
+          availableDates={availableDates}
+          onDateChange={setSelectedDate}
         />
 
         <MatchesTable

@@ -13,13 +13,18 @@ export function useMatchData(date: string) {
 
   useEffect(() => {
     const loadData = async () => {
+      if (!date) {
+        setData([]);
+        setIsLoading(false);
+        return;
+      }
       setIsLoading(true);
       setError(null);
 
       const path = `${basePath}/data/matches_${date}.json`;
       try {
         const response = await fetch(path);
-        if (!response.ok) throw new Error("Failed to load local data");
+        if (!response.ok) throw new Error("Za odabrani datum nema ponude.");
         const json = await response.json();
         setData(json.data || json);
         setIsLocal(true);
