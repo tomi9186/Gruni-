@@ -167,17 +167,22 @@ export function MatchesTable({
               >
                 {/* Time & Status */}
                 <TableCell className="px-6 py-4">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
+                  <div className="space-y-2">
+                    <div className="flex justify-center">
                       {predictionCorrect === true && (
-                        <CheckCircle2 className="h-5 w-5 text-green-600" title="Točno predviđanje" />
+                        <CheckCircle2 className="h-6 w-6 text-green-600" title="Točno predviđanje" />
                       )}
                       {predictionCorrect === false && (
-                        <XCircle className="h-5 w-5 text-red-600" title="Netočno predviđanje" />
+                        <XCircle className="h-6 w-6 text-red-600" title="Netočno predviđanje" />
                       )}
-                      <p className="font-semibold text-gray-900">{kickoffTime}</p>
+                      {predictionCorrect === null && (
+                        <div className="h-6 w-6" />
+                      )}
                     </div>
-                    {getStatusBadge(match.status, match.score)}
+                    <p className="font-semibold text-gray-900 text-center">{kickoffTime}</p>
+                    <div className="flex justify-center">
+                      {getStatusBadge(match.status, match.score)}
+                    </div>
                   </div>
                 </TableCell>
 
