@@ -40,14 +40,6 @@ export function FilterBar({
     });
   };
 
-  const handleHighValueBets = () => {
-    onFilterChange({
-      ...filters,
-      minOdds: 2.0,
-      minProbability: 70,
-    });
-  };
-
   const formatTime = (minutes: number | undefined): string => {
     if (minutes === undefined || isNaN(minutes)) return "00:00";
     const hours = Math.floor(minutes / 60);
@@ -215,51 +207,42 @@ export function FilterBar({
         </div>
       </div>
 
-      {/* League Filter */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Liga
-        </label>
-        <Select
-          value={filters.selectedLeagues.length === allLeagues.length ? "all" : filters.selectedLeagues.length === 1 ? filters.selectedLeagues[0] : "custom"}
-          onValueChange={(value) => {
-            if (value === "all") {
-              onFilterChange({ ...filters, selectedLeagues: allLeagues });
-            } else if (value !== "custom") {
-              onFilterChange({ ...filters, selectedLeagues: [value] });
-            }
-          }}
-        >
-          <SelectTrigger className="h-10">
-            <SelectValue placeholder="Odaberite ligu..." />
-          </SelectTrigger>
-          <SelectContent className="max-h-60">
-            <SelectItem value="all">
-              Sve lige ({allLeagues.length})
-            </SelectItem>
-            {allLeagues.map((league) => (
-              <SelectItem key={league} value={league}>
-                {league}
+      {/* League Filter and Reset Button */}
+      <div className="flex gap-3 items-end">
+        <div className="flex-1">
+          <label className="mb-2 block text-sm font-medium text-gray-700">
+            Liga
+          </label>
+          <Select
+            value={filters.selectedLeagues.length === allLeagues.length ? "all" : filters.selectedLeagues.length === 1 ? filters.selectedLeagues[0] : "custom"}
+            onValueChange={(value) => {
+              if (value === "all") {
+                onFilterChange({ ...filters, selectedLeagues: allLeagues });
+              } else if (value !== "custom") {
+                onFilterChange({ ...filters, selectedLeagues: [value] });
+              }
+            }}
+          >
+            <SelectTrigger className="h-10">
+              <SelectValue placeholder="Odaberite ligu..." />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              <SelectItem value="all">
+                Sve lige ({allLeagues.length})
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Action Buttons */}
-      <div className="flex gap-3">
-        <Button
-          onClick={handleHighValueBets}
-          variant="outline"
-          className="flex-1"
-        >
-          Visoke Kvote (2.0+)
-        </Button>
+              {allLeagues.map((league) => (
+                <SelectItem key={league} value={league}>
+                  {league}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         <Button
           onClick={handleReset}
           variant="ghost"
-          className="flex-1"
+          className="h-10"
         >
           <X className="mr-2 h-4 w-4" />
           Resetiraj
