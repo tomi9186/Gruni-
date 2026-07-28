@@ -102,9 +102,9 @@ export function MatchesTable({
   onSort,
 }: MatchesTableProps) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
+    <div className="overflow-auto rounded-lg border border-gray-200 bg-white relative max-h-[70vh]">
       <Table>
-        <TableHeader className="sticky top-0 z-10">
+        <TableHeader className="sticky top-0 z-10 bg-gray-50">
           <TableRow className="border-b border-gray-200 bg-gray-50">
             <TableHead className="px-6 py-3 text-left">
               <SortHeader
