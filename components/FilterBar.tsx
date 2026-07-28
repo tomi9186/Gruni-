@@ -56,6 +56,14 @@ export function FilterBar({
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
   };
 
+  const getMatchCountText = (count: number): string => {
+    const lastDigit = count % 10;
+    const lastTwoDigits = count % 100;
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return `${count} utakmica`;
+    if (lastDigit >= 2 && lastDigit <= 4) return `${count} utakmice`;
+    return `${count} utakmica`;
+  };
+
   const handleDateChange = (direction: 'prev' | 'next') => {
     const currentIndex = availableDates.indexOf(selectedDate);
     if (direction === 'prev' && currentIndex > 0) {
@@ -295,8 +303,7 @@ export function FilterBar({
         </div>
         <div className="text-right">
           <span className="text-sm font-medium text-gray-600">
-            Prikazano <span className="text-indigo-600 font-semibold">{matchCount}</span> od{" "}
-            <span className="text-gray-900 font-semibold">{totalCount}</span> utakmica
+            <span className="text-indigo-600 font-semibold">{getMatchCountText(matchCount)}</span>
           </span>
         </div>
       </div>
