@@ -16,7 +16,7 @@ export function Header({
   isLoading,
 }: HeaderProps) {
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
+    <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Image 

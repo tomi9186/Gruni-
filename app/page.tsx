@@ -181,7 +181,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-2 sm:p-4 md:p-6">
       <div className="mx-auto max-w-7xl space-y-6">
         <Header
           isLocal={isLocal}

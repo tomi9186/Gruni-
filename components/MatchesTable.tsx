@@ -105,7 +105,7 @@ export function MatchesTable({
       <table className="w-full caption-bottom text-sm">
         <TableHeader className="sticky top-0 z-10 bg-gray-50/80 backdrop-blur-sm">
           <TableRow className="border-b border-gray-200 bg-gray-50">
-            <TableHead className="px-6 py-3 text-left">
+            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
               <SortHeader
                 label="Vrijeme & Status"
                 field="time"
@@ -114,7 +114,7 @@ export function MatchesTable({
                 onSort={onSort}
               />
             </TableHead>
-            <TableHead className="px-6 py-3 text-left">
+            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
               <SortHeader
                 label="Liga & Timovi"
                 field="league"
@@ -123,10 +123,10 @@ export function MatchesTable({
                 onSort={onSort}
               />
             </TableHead>
-            <TableHead className="px-6 py-3 text-left">
+            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
               Predviđanje / Tip
             </TableHead>
-            <TableHead className="px-6 py-3 text-left">
+            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
               <SortHeader
                 label="Vjerojatnost %"
                 field="probability"
@@ -135,7 +135,7 @@ export function MatchesTable({
                 onSort={onSort}
               />
             </TableHead>
-            <TableHead className="px-6 py-3 text-left">
+            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
               <SortHeader
                 label="Kvota (Koef.)"
                 field="odds"
@@ -144,7 +144,7 @@ export function MatchesTable({
                 onSort={onSort}
               />
             </TableHead>
-            <TableHead className="px-6 py-3 text-left">Rezultat</TableHead>
+            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">Rezultat</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -165,7 +165,7 @@ export function MatchesTable({
                 } hover:bg-blue-50`}
               >
                 {/* Time & Status */}
-                <TableCell className="px-6 py-4">
+                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
                   <div className="space-y-2">
                     <div className="flex justify-center">
                       {predictionCorrect === true && (
@@ -186,7 +186,7 @@ export function MatchesTable({
                 </TableCell>
 
                 {/* League & Teams */}
-                <TableCell className="px-6 py-4">
+                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
                   <div className="space-y-2">
                     <div>
                       <span className="text-xs font-bold text-gray-600 uppercase">
@@ -207,7 +207,7 @@ export function MatchesTable({
                 </TableCell>
 
                 {/* Prediction */}
-                <TableCell className="px-6 py-4">
+                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
                   <div className="space-y-1">
                     <Badge variant="outline" className="bg-blue-50 text-blue-700 text-xs">
                       {match.predictions?.result?.toUpperCase() || "N/A"}
@@ -219,7 +219,7 @@ export function MatchesTable({
                 </TableCell>
 
                 {/* Probability */}
-                <TableCell className="px-6 py-4">
+                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
                   <div className="space-y-2">
                     <div className="h-2 w-24 overflow-hidden rounded-full bg-gray-200">
                       <div
@@ -248,14 +248,14 @@ export function MatchesTable({
                 </TableCell>
 
                 {/* Odds */}
-                <TableCell className="px-6 py-4">
+                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
                   <Badge className="bg-amber-100 text-amber-900 text-base font-bold">
                     {mainOdds.toFixed(2)}
                   </Badge>
                 </TableCell>
 
                 {/* Result */}
-                <TableCell className="px-6 py-4">
+                <TableCell className="px-2 py-4 sm:px-4 md:px-6">
                   {match.status === "FT" ? (
                     <Badge className="bg-gray-600">
                       FT {match.score.home}-{match.score.away}

@@ -51,7 +51,7 @@ export function FilterBar({
   };
 
   return (
-    <div className="rounded-lg border border-gray-200 bg-white p-6">
+    <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
       <div className="flex justify-between items-center">
         <div className="flex-1">
           <label htmlFor="search-input" className="sr-only">Pretraži</label>
