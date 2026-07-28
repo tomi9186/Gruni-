@@ -1,5 +1,6 @@
 "use client";
 
+import { Select as ShadSelect, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import React from "react";
 import { useState } from "react";
 import {
@@ -15,6 +16,7 @@ import { Match, Predictions } from "@/lib/types";
 import {
   ArrowUp,
   ArrowDown,
+  ArrowUpDown,
   ChevronDown,
 } from "lucide-react";
 
@@ -113,81 +115,84 @@ export function MatchesTable({
   checkPredictionCorrect,
 }: MatchesTableProps) {
   return (
-    <div className="overflow-y-auto rounded-lg border border-gray-200 bg-white relative max-h-[70vh]">
-      <table className="w-full caption-bottom text-sm">
-        <TableHeader className="sticky top-0 z-10 bg-gray-50/80 backdrop-blur-sm">
-          <TableRow className="border-b border-gray-200 bg-gray-50">
-            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
-              <SortHeader
-                label="Vrijeme & Status"
-                field="time"
-                currentSort={sortBy}
-                currentOrder={sortOrder}
-                onSort={onSort}
-              />
-            </TableHead>
-            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
-              <SortHeader
-                label="Liga & Timovi"
-                field="league"
-                currentSort={sortBy}
-                currentOrder={sortOrder}
-                onSort={onSort}
-              />
-            </TableHead>
-            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
-              Predviđanje / Tip
-            </TableHead>
-            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
-              <SortHeader
-                label="Vjerojatnost %"
-                field="probability"
-                currentSort={sortBy}
-                currentOrder={sortOrder}
-                onSort={onSort}
-              />
-            </TableHead>
-            <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
-              <SortHeader
-                label="Kvota (Koef.)"
-                field="odds"
-                currentSort={sortBy}
-                currentOrder={sortOrder}
-                onSort={onSort}
-              />
-            </TableHead>
-            <TableHead className="px-1 py-3 text-center sm:px-2">
-              <span className="sr-only">Proširi</span>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {matches.map((match, index) => {
-            const kickoffTime = new Date(match.kickoff).toLocaleTimeString(
-              "hr-HR",
-              { hour: "2-digit", minute: "2-digit" }
-            );
+    <>
+      {/* Mobile Sort Controls */}
+      <div className="md:hidden mb-4 flex items-center gap-2">
+        <ShadSelect value={sortBy} onValueChange={(value) => onSort(value as any)}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Sortiraj po..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="time">Vrijeme početka</SelectItem>
+            <SelectItem value="probability">Vjerojatnost</SelectItem>
+            <SelectItem value="odds">Kvota</SelectItem>
+            <SelectItem value="league">Liga</SelectItem>
+          </SelectContent>
+        </ShadSelect>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => onSort(sortBy)}
+        >
+          {sortOrder === 'asc' ? <ArrowUp className="h-4 w-4" /> : <ArrowDown className="h-4 w-4" />}
+        </Button>
+      </div>
 
-            return (
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-y-auto rounded-lg border border-gray-200 bg-white relative max-h-[70vh]">
+        <table className="w-full caption-bottom text-sm">
+          <TableHeader className="sticky top-0 z-10 bg-gray-50/80 backdrop-blur-sm">
+            <TableRow className="border-b border-gray-200 bg-gray-50">
+              <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
+                <SortHeader label="Vrijeme & Status" field="time" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
+              </TableHead>
+              <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
+                <SortHeader label="Liga & Timovi" field="league" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
+              </TableHead>
+              <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">Predviđanje / Tip</TableHead>
+              <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
+                <SortHeader label="Vjerojatnost %" field="probability" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
+              </TableHead>
+              <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
+                <SortHeader label="Kvota (Koef.)" field="odds" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
+              </TableHead>
+              <TableHead className="px-1 py-3 text-center sm:px-2">
+                <span className="sr-only">Proširi</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {matches.map((match, index) => (
               <MatchRow
                 key={match.match_id}
                 match={match}
-                kickoffTime={kickoffTime}
-                mainPrediction={getMainPrediction(match)} // This is correct
+                mainPrediction={getMainPrediction(match)}
                 predictionResult={checkPredictionCorrect(match)}
                 isEven={index % 2 === 0}
               />
-            );
-          })}
-        </TableBody>
-      </table>
+            ))}
+          </TableBody>
+        </table>
+      </div>
+
+      {/* Mobile Card List View */}
+      <div className="md:hidden space-y-3">
+        {matches.map((match) => (
+          <MatchCard
+            key={match.match_id}
+            match={match}
+            mainPrediction={getMainPrediction(match)}
+            predictionResult={checkPredictionCorrect(match)}
+          />
+        ))}
+      </div>
 
       {matches.length === 0 && (
-        <div className="flex h-64 items-center justify-center text-gray-500">
-          No matches found matching your filters.
+        <div className="flex h-48 items-center justify-center text-gray-500 bg-white rounded-lg border">
+          Nema utakmica koje odgovaraju filterima.
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -199,6 +204,10 @@ function MatchRow({ match, kickoffTime, mainPrediction, predictionResult, isEven
   isEven: boolean 
 }) {
   const [expanded, setExpanded] = useState(false);
+  const kickoffTime = new Date(match.kickoff).toLocaleTimeString(
+    "hr-HR",
+    { hour: "2-digit", minute: "2-digit" }
+  );
 
   const allBets = [
     { label: "1", prob: match.probabilities?.home_win, odd: match.odds?.home_win },
@@ -331,5 +340,116 @@ function MatchRow({ match, kickoffTime, mainPrediction, predictionResult, isEven
         </TableRow>
       )}
     </>
+  );
+}
+
+function MatchCard({ match, mainPrediction, predictionResult }: {
+  match: Match,
+  mainPrediction: { prediction: string; probability: number; odd: number },
+  predictionResult: boolean | null
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const kickoffTime = new Date(match.kickoff).toLocaleTimeString("hr-HR", { hour: "2-digit", minute: "2-digit" });
+
+  const allBets = [
+    { label: "1", prob: match.probabilities?.home_win, odd: match.odds?.home_win },
+    { label: "X", prob: match.probabilities?.draw, odd: match.odds?.draw },
+    { label: "2", prob: match.probabilities?.away_win, odd: match.odds?.away_win },
+    { label: "Oba daju gol", prob: match.probabilities?.btts, odd: match.odds?.btts_yes },
+    { label: "Više od 1.5", prob: match.probabilities?.over_15, odd: match.odds?.over_15 },
+    { label: "Više od 2.5", prob: match.probabilities?.over_25, odd: match.odds?.over_25 },
+    { label: "Više od 3.5", prob: match.probabilities?.over_35, odd: match.odds?.over_35 },
+    { label: "1. pol 0.5+", prob: match.probabilities?.fh_over_05, odd: match.odds?.fh_over_05 },
+    { label: "1. pol 1.5+", prob: match.probabilities?.fh_over_15, odd: match.odds?.fh_over_15 },
+    { label: "1X", prob: null, odd: match.odds?.dc_1x },
+    { label: "X2", prob: null, odd: match.odds?.dc_x2 },
+    { label: "12", prob: null, odd: match.odds?.dc_12 },
+  ].filter(bet => bet.odd && parseFloat(bet.odd) > 0);
+
+  return (
+    <div className={`rounded-lg border bg-white p-3 shadow-sm ${
+      predictionResult === true ? 'border-green-200 bg-green-50/30' : 
+      predictionResult === false ? 'border-red-200 bg-red-50/30' : 
+      'border-gray-200'
+    }`}>
+      {/* Card Header */}
+      <div className="flex justify-between items-center text-xs mb-2">
+        <div className="font-semibold text-gray-700">
+          <p>{match.competition.name}</p>
+          <p className="text-gray-500 font-normal">{match.competition.country}</p>
+        </div>
+        <div className="text-right">
+          <p className="font-bold text-gray-800">{kickoffTime}</p>
+          {getStatusBadge(match.status, match.score)}
+        </div>
+      </div>
+
+      {/* Teams and Form */}
+      <div className="text-sm font-semibold text-center my-2">
+        {match.home_team.name}
+        <span className="font-normal text-gray-500 text-xs mx-2">vs</span>
+        {match.away_team.name}
+      </div>
+      <div className="flex justify-center items-center gap-1 text-xs mb-3">
+        {match.form.home.split('').map((r, i) => <FormBadge key={`h-${i}`} result={r} />)}
+        <span className="mx-2 text-gray-300">|</span>
+        {match.form.away.split('').map((r, i) => <FormBadge key={`a-${i}`} result={r} />)}
+      </div>
+
+      {/* Main Prediction Info */}
+      <div className="grid grid-cols-3 gap-2 text-center border-t border-b border-gray-100 py-2">
+        <div>
+          <p className="text-xs text-gray-500">Tip</p>
+          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 font-bold">
+            {translatePrediction(mainPrediction.prediction)}
+          </Badge>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">Vjer.</p>
+          <Badge
+            className={`font-bold ${mainPrediction.probability >= 70
+                ? "bg-green-100 text-green-800"
+                : mainPrediction.probability >= 50
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-orange-100 text-orange-800"
+              }`}
+          >
+            {mainPrediction.probability}%
+          </Badge>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">Kvota</p>
+          <Badge className="bg-amber-100 text-amber-900 font-bold">
+            {mainPrediction.odd.toFixed(2)}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Expand Button */}
+      <div className="text-center mt-2">
+        <Button variant="ghost" size="sm" className="w-full h-8 text-xs" onClick={() => setExpanded(!expanded)}>
+          {expanded ? 'Sakrij sve oklade' : 'Prikaži sve oklade'}
+          <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${expanded ? 'rotate-180' : ''}`} />
+        </Button>
+      </div>
+
+      {/* Expanded Content */}
+      {expanded && (
+        <div className="mt-3 pt-3 border-t">
+          <h4 className="font-semibold mb-2 text-sm text-gray-800">Sve dostupne oklade:</h4>
+          <div className="grid grid-cols-2 gap-3">
+            {allBets.map(bet => (
+              <div key={bet.label} className="p-2 bg-gray-50 rounded-lg border border-gray-200 text-center">
+                <p className="font-bold text-sm text-gray-700">{bet.label}</p>
+                <div className="flex justify-center items-center gap-2 mt-1">
+                  {bet.prob !== null && <Badge variant="secondary" className="text-xs">{bet.prob}%</Badge>}
+                  <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-xs">{parseFloat(bet.odd!).toFixed(2)}</Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
