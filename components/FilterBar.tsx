@@ -183,7 +183,7 @@ export function FilterBar({
 
             <Button
               onClick={handleReset}
-              variant="ghost"
+              variant="ghost" 
               className="h-10"
             >
               <X className="mr-2 h-4 w-4" />
