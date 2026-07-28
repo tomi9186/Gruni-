@@ -48,7 +48,8 @@ export function FilterBar({
     });
   };
 
-  const formatTime = (minutes: number): string => {
+  const formatTime = (minutes: number | undefined): string => {
+    if (minutes === undefined || isNaN(minutes)) return "00:00";
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${String(hours).padStart(2, "0")}:${String(mins).padStart(2, "0")}`;
@@ -166,18 +167,22 @@ export function FilterBar({
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">
-                Od (Od)
+                Od (HH:mm)
               </label>
               <Input
-                type="time"
+                type="text"
+                placeholder="00:00"
                 value={formatTime(filters.minTime)}
                 onChange={(e) => {
-                  const [hours, minutes] = e.target.value.split(":").map(Number);
-                  if (!isNaN(hours) && !isNaN(minutes)) {
-                    onFilterChange({
-                      ...filters,
-                      minTime: hours * 60 + minutes,
-                    });
+                  const parts = e.target.value.split(":").map(Number);
+                  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                    const minutes = parts[0] * 60 + parts[1];
+                    if (minutes >= 0 && minutes <= 1440) {
+                      onFilterChange({
+                        ...filters,
+                        minTime: minutes,
+                      });
+                    }
                   }
                 }}
                 className="h-9 text-sm"
@@ -185,18 +190,22 @@ export function FilterBar({
             </div>
             <div>
               <label className="mb-1 block text-xs font-medium text-gray-600">
-                Do (Do)
+                Do (HH:mm)
               </label>
               <Input
-                type="time"
+                type="text"
+                placeholder="24:00"
                 value={formatTime(filters.maxTime)}
                 onChange={(e) => {
-                  const [hours, minutes] = e.target.value.split(":").map(Number);
-                  if (!isNaN(hours) && !isNaN(minutes)) {
-                    onFilterChange({
-                      ...filters,
-                      maxTime: hours * 60 + minutes,
-                    });
+                  const parts = e.target.value.split(":").map(Number);
+                  if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+                    const minutes = parts[0] * 60 + parts[1];
+                    if (minutes >= 0 && minutes <= 1440) {
+                      onFilterChange({
+                        ...filters,
+                        maxTime: minutes,
+                      });
+                    }
                   }
                 }}
                 className="h-9 text-sm"
@@ -207,35 +216,34 @@ export function FilterBar({
       </div>
 
       {/* League Filter */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">
-          Liga ({filters.selectedLeagues.length} od {allLeagues.length})
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Liga
         </label>
-        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-gray-200 rounded p-2 bg-gray-50">
-          {allLeagues.map((league) => (
-            <label key={league} className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-1 rounded">
-              <input
-                type="checkbox"
-                checked={filters.selectedLeagues.includes(league)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    onFilterChange({
-                      ...filters,
-                      selectedLeagues: [...filters.selectedLeagues, league],
-                    });
-                  } else {
-                    onFilterChange({
-                      ...filters,
-                      selectedLeagues: filters.selectedLeagues.filter(l => l !== league),
-                    });
-                  }
-                }}
-                className="cursor-pointer"
-              />
-              <span className="text-sm text-gray-700">{league}</span>
-            </label>
-          ))}
-        </div>
+        <Select
+          value={filters.selectedLeagues.length === allLeagues.length ? "all" : filters.selectedLeagues.length === 1 ? filters.selectedLeagues[0] : "custom"}
+          onValueChange={(value) => {
+            if (value === "all") {
+              onFilterChange({ ...filters, selectedLeagues: allLeagues });
+            } else if (value !== "custom") {
+              onFilterChange({ ...filters, selectedLeagues: [value] });
+            }
+          }}
+        >
+          <SelectTrigger className="h-10">
+            <SelectValue placeholder="Odaberite ligu..." />
+          </SelectTrigger>
+          <SelectContent className="max-h-60">
+            <SelectItem value="all">
+              Sve lige ({allLeagues.length})
+            </SelectItem>
+            {allLeagues.map((league) => (
+              <SelectItem key={league} value={league}>
+                {league}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Action Buttons */}
