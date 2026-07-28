@@ -29,9 +29,8 @@ export function FilterBar({
   const handleReset = () => {
     onFilterChange({
       search: "",
-      oddsFilter: "all",
       minOdds: 1.0,
-      maxOdds: 5.0,
+      maxOdds: 10.0,
       minProbability: 0,
     });
   };
@@ -39,7 +38,6 @@ export function FilterBar({
   const handleHighValueBets = () => {
     onFilterChange({
       ...filters,
-      oddsFilter: "2.00",
       minOdds: 2.0,
       minProbability: 70,
     });
@@ -47,124 +45,122 @@ export function FilterBar({
 
   return (
     <div className="space-y-4 rounded-lg border border-gray-200 bg-white p-6">
-      {/* Search and Quick Filters */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Search Team or League
-          </label>
-          <Input
-            placeholder="e.g., Manchester, Premier League"
-            value={filters.search}
-            onChange={(e) =>
-              onFilterChange({ ...filters, search: e.target.value })
-            }
-            className="h-10"
-          />
-        </div>
+      {/* Search */}
+      <div>
+        <label className="mb-2 block text-sm font-medium text-gray-700">
+          Pretraga Tima ili Lige
+        </label>
+        <Input
+          placeholder="npr. Bayern, Manchester, Premier League"
+          value={filters.search}
+          onChange={(e) =>
+            onFilterChange({ ...filters, search: e.target.value })
+          }
+          className="h-10"
+        />
+      </div>
 
-        <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Quick Odds Filter
-          </label>
-          <Select
-            value={filters.oddsFilter}
+      {/* Odds Range */}
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-gray-700">
+          Raspon Kvota: {filters.minOdds.toFixed(2)} - {filters.maxOdds.toFixed(2)}
+        </label>
+        <div className="space-y-2">
+          <Slider
+            value={[filters.minOdds, filters.maxOdds]}
             onValueChange={(value) =>
-              onFilterChange({
-                ...filters,
-                oddsFilter: value as FilterState["oddsFilter"],
-              })
+              onFilterChange({ ...filters, minOdds: value[0], maxOdds: value[1] })
             }
-          >
-            <SelectTrigger className="h-10">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Odds</SelectItem>
-              <SelectItem value="1.30">Odds &gt; 1.30</SelectItem>
-              <SelectItem value="1.60-1.80">Odds 1.60 - 1.80</SelectItem>
-              <SelectItem value="2.00">Odds &gt; 2.00</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Custom Min Odds
-          </label>
-          <Input
-            type="number"
-            min="1.0"
-            max="5.0"
-            step="0.05"
-            value={filters.minOdds}
-            onChange={(e) =>
-              onFilterChange({ ...filters, minOdds: parseFloat(e.target.value) })
-            }
-            className="h-10"
+            min={1.0}
+            max={10.0}
+            step={0.1}
+            className="w-full"
           />
-        </div>
-
-        <div>
-          <label className="mb-2 block text-sm font-medium text-gray-700">
-            Custom Max Odds
-          </label>
-          <Input
-            type="number"
-            min="1.0"
-            max="5.0"
-            step="0.05"
-            value={filters.maxOdds}
-            onChange={(e) =>
-              onFilterChange({ ...filters, maxOdds: parseFloat(e.target.value) })
-            }
-            className="h-10"
-          />
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">
+                Min (Minimalna)
+              </label>
+              <Input
+                type="number"
+                min="1.0"
+                max="10.0"
+                step="0.1"
+                value={filters.minOdds}
+                onChange={(e) =>
+                  onFilterChange({
+                    ...filters,
+                    minOdds: Math.min(parseFloat(e.target.value), filters.maxOdds),
+                  })
+                }
+                className="h-9 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-gray-600">
+                Max (Maksimalna)
+              </label>
+              <Input
+                type="number"
+                min="1.0"
+                max="10.0"
+                step="0.1"
+                value={filters.maxOdds}
+                onChange={(e) =>
+                  onFilterChange({
+                    ...filters,
+                    maxOdds: Math.max(parseFloat(e.target.value), filters.minOdds),
+                  })
+                }
+                className="h-9 text-sm"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Probability Slider and Presets */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <div>
-          <label className="mb-3 block text-sm font-medium text-gray-700">
-            Min Probability: {filters.minProbability}%
-          </label>
-          <Slider
-            value={[filters.minProbability]}
-            onValueChange={(value) =>
-              onFilterChange({ ...filters, minProbability: value[0] })
-            }
-            min={0}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-        </div>
+      {/* Probability Slider */}
+      <div>
+        <label className="mb-3 block text-sm font-medium text-gray-700">
+          Min Verovatnoća Dobitka: {filters.minProbability}%
+        </label>
+        <Slider
+          value={[filters.minProbability]}
+          onValueChange={(value) =>
+            onFilterChange({ ...filters, minProbability: value[0] })
+          }
+          min={0}
+          max={100}
+          step={1}
+          className="w-full"
+        />
+      </div>
 
+      {/* Action Buttons */}
+      <div className="flex gap-3">
         <Button
           onClick={handleHighValueBets}
           variant="outline"
-          className="h-12 self-end font-medium"
+          className="flex-1"
         >
-          High Value Bets
+          High Value Bets (2.0+)
         </Button>
 
         <Button
           onClick={handleReset}
           variant="ghost"
-          size="sm"
-          className="h-12 self-end"
+          className="flex-1"
         >
           <X className="mr-2 h-4 w-4" />
-          Reset Filters
+          Reset
         </Button>
       </div>
 
       {/* Filter Summary */}
-      <div className="flex items-center justify-between border-t border-gray-100 pt-4 text-sm">
-        <span className="font-medium text-gray-600">
-          Showing <span className="text-blue-600">{matchCount}</span> of{" "}
-          <span className="text-gray-900">{totalCount}</span> matches
+      <div className="border-t border-gray-100 pt-3">
+        <span className="text-sm font-medium text-gray-600">
+          Showing <span className="text-indigo-600 font-semibold">{matchCount}</span> of{" "}
+          <span className="text-gray-900 font-semibold">{totalCount}</span> matches
         </span>
       </div>
     </div>

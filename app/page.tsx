@@ -1,20 +1,37 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { FilterBar } from "@/components/FilterBar";
 import { MatchesTable } from "@/components/MatchesTable";
 import { useMatchData } from "@/hooks/useMatchData";
 import { FilterState, Match } from "@/lib/types";
 
+// Helper functions outside component
+const getWinProbability = (match: Match): number => {
+  if (!match?.predictions?.result) return 50;
+  const prediction = match.predictions.result.toLowerCase();
+  if (prediction.includes("1")) return match.probabilities?.home_win || 50;
+  if (prediction.includes("2")) return match.probabilities?.away_win || 50;
+  if (prediction.includes("x") || prediction.includes("draw")) return match.probabilities?.draw || 50;
+  if (prediction.includes("over")) return match.probabilities?.over_25 || 50;
+  return 50;
+};
+
+const getMainOdds = (match: Match): number => {
+  const odds = match?.odds;
+  if (!odds) return 1.5;
+  const mainOdds = parseFloat(odds.home_win) || parseFloat(odds.draw) || parseFloat(odds.away_win) || 1.5;
+  return mainOdds;
+};
+
 export default function Home() {
   const defaultDate = "2026-07-27";
   const [selectedDate, setSelectedDate] = useState(defaultDate);
   const [filters, setFilters] = useState<FilterState>({
     search: "",
-    oddsFilter: "all",
     minOdds: 1.0,
-    maxOdds: 5.0,
+    maxOdds: 10.0,
     minProbability: 0,
   });
   const [sortBy, setSortBy] = useState<
@@ -22,8 +39,8 @@ export default function Home() {
   >("time");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const { data, isLoading, error, isLocal, fetchFromApi } =
-    useMatchData(selectedDate);
+  const { data, isLoading, error, isLocal } =
+    useMatchData(defaultDate);
 
   // Apply filters
   const filteredMatches = useMemo(() => {
@@ -34,32 +51,23 @@ export default function Home() {
       const query = filters.search.toLowerCase();
       filtered = filtered.filter(
         (match) =>
-          match.homeTeam.name.toLowerCase().includes(query) ||
-          match.awayTeam.name.toLowerCase().includes(query) ||
-          match.league.name.toLowerCase().includes(query)
+          match.home_team.name.toLowerCase().includes(query) ||
+          match.away_team.name.toLowerCase().includes(query) ||
+          match.competition.name.toLowerCase().includes(query)
       );
     }
 
-    // Odds filters
-    if (filters.oddsFilter === "1.30") {
-      filtered = filtered.filter((match) => match.odds > 1.3);
-    } else if (filters.oddsFilter === "1.60-1.80") {
-      filtered = filtered.filter(
-        (match) => match.odds >= 1.6 && match.odds <= 1.8
-      );
-    } else if (filters.oddsFilter === "2.00") {
-      filtered = filtered.filter((match) => match.odds > 2.0);
-    }
-
-    // Custom odds range
-    filtered = filtered.filter(
-      (match) => match.odds >= filters.minOdds && match.odds <= filters.maxOdds
-    );
+    // Odds range filter
+    filtered = filtered.filter((match) => {
+      const odds = getMainOdds(match);
+      return odds >= filters.minOdds && odds <= filters.maxOdds;
+    });
 
     // Probability filter
-    filtered = filtered.filter(
-      (match) => match.prediction.probability >= filters.minProbability
-    );
+    filtered = filtered.filter((match) => {
+      const winProb = getWinProbability(match);
+      return winProb >= filters.minProbability;
+    });
 
     return filtered;
   }, [data, filters]);
@@ -73,21 +81,24 @@ export default function Home() {
 
       switch (sortBy) {
         case "time":
-          aVal = a.kickOffTime;
-          bVal = b.kickOffTime;
+          aVal = new Date(a.kickoff).getTime();
+          bVal = new Date(b.kickoff).getTime();
           break;
         case "league":
-          aVal = a.league.name;
-          bVal = b.league.name;
+          aVal = a.competition.name;
+          bVal = b.competition.name;
           break;
         case "probability":
-          aVal = a.prediction.probability;
-          bVal = b.prediction.probability;
+          aVal = getWinProbability(a);
+          bVal = getWinProbability(b);
           break;
         case "odds":
-          aVal = a.odds;
-          bVal = b.odds;
+          aVal = getMainOdds(a);
+          bVal = getMainOdds(b);
           break;
+        default:
+          aVal = 0;
+          bVal = 0;
       }
 
       if (typeof aVal === "string") {
@@ -114,11 +125,8 @@ export default function Home() {
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 p-6">
       <div className="mx-auto max-w-7xl space-y-6">
         <Header
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
           isLocal={isLocal}
           isLoading={isLoading}
-          onFetchApi={fetchFromApi}
         />
 
         {error && (
