@@ -90,7 +90,11 @@ export default function Home() {
 
   // Apply filters
   const filteredMatches = useMemo(() => {
-    let filtered = [...data];
+    // Filter out matches with no prediction
+    let filtered = [...data].filter(
+      (match) =>
+        match.predictions?.result && match.predictions.result !== "N/A"
+    );
 
     // Search filter
     if (filters.search) {
