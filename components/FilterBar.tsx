@@ -94,13 +94,13 @@ export function FilterBar({
       </div>
 
       {isExpanded && (
-        <div className="mt-6 space-y-6 border-t border-gray-200 pt-6">
+        <div className="mt-6 space-y-4 pt-4">
           {/* Odds Range */}
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700">
               Raspon Kvota: {filters.minOdds.toFixed(2)} - {filters.maxOdds.toFixed(2)}
             </label>
-            <div className="space-y-2">
+            <div>
               <Slider
                 value={[filters.minOdds, filters.maxOdds]}
                 onValueChange={(value) =>
@@ -111,46 +111,6 @@ export function FilterBar({
                 step={0.1}
                 className="w-full"
               />
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">
-                    Min (Minimalna)
-                  </label>
-                  <Input
-                    type="number"
-                    min="1.0"
-                    max="10.0"
-                    step="0.1"
-                    value={filters.minOdds}
-                    onChange={(e) =>
-                      onFilterChange({
-                        ...filters,
-                        minOdds: Math.min(parseFloat(e.target.value), filters.maxOdds),
-                      })
-                    }
-                    className="h-9 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">
-                    Max (Maksimalna)
-                  </label>
-                  <Input
-                    type="number"
-                    min="1.0"
-                    max="10.0"
-                    step="0.1"
-                    value={filters.maxOdds}
-                    onChange={(e) =>
-                      onFilterChange({
-                        ...filters,
-                        maxOdds: Math.max(parseFloat(e.target.value), filters.minOdds),
-                      })
-                    }
-                    className="h-9 text-sm"
-                  />
-                </div>
-              </div>
             </div>
           </div>
 
@@ -176,7 +136,7 @@ export function FilterBar({
             <label className="block text-sm font-medium text-gray-700">
               Vrijeme početka: {formatTime(filters.minTime)} - {formatTime(filters.maxTime)}
             </label>
-            <div className="space-y-2">
+            <div>
               <Slider
                 value={[filters.minTime, filters.maxTime]}
                 onValueChange={(value) =>
@@ -187,60 +147,12 @@ export function FilterBar({
                 step={15}
                 className="w-full"
               />
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">
-                    Od (HH:mm)
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="00:00"
-                    value={formatTime(filters.minTime)}
-                    onChange={(e) => {
-                      const parts = e.target.value.split(":").map(Number);
-                      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-                        const minutes = parts[0] * 60 + parts[1];
-                        if (minutes >= 0 && minutes <= 1440) {
-                          onFilterChange({
-                            ...filters,
-                            minTime: minutes,
-                          });
-                        }
-                      }
-                    }}
-                    className="h-9 text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">
-                    Do (HH:mm)
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="24:00"
-                    value={formatTime(filters.maxTime)}
-                    onChange={(e) => {
-                      const parts = e.target.value.split(":").map(Number);
-                      if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-                        const minutes = parts[0] * 60 + parts[1];
-                        if (minutes >= 0 && minutes <= 1440) {
-                          onFilterChange({
-                            ...filters,
-                            maxTime: minutes,
-                          });
-                        }
-                      }
-                    }}
-                    className="h-9 text-sm"
-                  />
-                </div>
-              </div>
             </div>
           </div>
 
           {/* League Filter and Reset Button */}
-          <div className="flex gap-3 items-end">
-            <div className="flex-1">
+          <div className="flex w-full gap-3 items-end">
+            <div className="flex-grow">
               <label className="mb-2 block text-sm font-medium text-gray-700">
                 Liga
               </label>
@@ -254,7 +166,7 @@ export function FilterBar({
                   }
                 }}
               >
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-10 text-gray-900">
                   <SelectValue placeholder="Odaberite ligu..." />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
@@ -272,7 +184,7 @@ export function FilterBar({
 
             <Button
               onClick={handleReset}
-              variant="ghost"
+              variant="ghost" 
               className="h-10"
             >
               <X className="mr-2 h-4 w-4" />

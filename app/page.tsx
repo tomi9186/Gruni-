@@ -165,7 +165,7 @@ export default function Home() {
 
     // Probability filter - use the probability of the predicted outcome
     filtered = filtered.filter((match) => {
-      const winProb = getWinProbability(match);
+      const winProb = getMainPrediction(match).probability;
       return winProb >= filters.minProbability;
     });
 

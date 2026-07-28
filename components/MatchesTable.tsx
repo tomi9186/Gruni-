@@ -367,8 +367,8 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
 
   return (
     <div className={`rounded-lg border bg-white p-3 shadow-sm ${
-      predictionResult === true ? 'border-green-200 bg-green-50/30' : 
-      predictionResult === false ? 'border-red-200 bg-red-50/30' : 
+      predictionResult === true ? 'border-green-300 bg-green-100/50' : 
+      predictionResult === false ? 'border-red-300 bg-red-100/50' : 
       'border-gray-200'
     }`}>
       {/* Card Header */}
@@ -426,7 +426,7 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
 
       {/* Expand Button */}
       <div className="text-center mt-2">
-        <Button variant="ghost" size="sm" className="w-full h-8 text-xs" onClick={() => setExpanded(!expanded)}>
+        <Button variant="ghost" size="sm" className="w-full h-8 text-xs text-gray-700" onClick={() => setExpanded(!expanded)}>
           {expanded ? 'Sakrij sve oklade' : 'Prikaži sve oklade'}
           <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${expanded ? 'rotate-180' : ''}`} />
         </Button>
