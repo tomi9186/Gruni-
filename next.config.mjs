@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/Gruni-',
+  basePath: process.env.NEXT_PUBLIC_BASE_PATH || '',
   output: 'export',
   typescript: {
     ignoreBuildErrors: true,
