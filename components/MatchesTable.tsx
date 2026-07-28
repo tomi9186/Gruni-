@@ -163,7 +163,7 @@ export function MatchesTable({
           </TableHeader>
           <TableBody>
             {matches.map((match, index) => (
-              <MatchRow
+              <MatchRow // kickoffTime is now calculated inside MatchRow
                 key={match.match_id}
                 match={match}
                 mainPrediction={getMainPrediction(match)}
@@ -196,9 +196,8 @@ export function MatchesTable({
   );
 }
 
-function MatchRow({ match, kickoffTime, mainPrediction, predictionResult, isEven }: { 
+function MatchRow({ match, mainPrediction, predictionResult, isEven }: { 
   match: Match, 
-  kickoffTime: string, 
   mainPrediction: { prediction: string; probability: number; odd: number },
   predictionResult: boolean | null,
   isEven: boolean 
