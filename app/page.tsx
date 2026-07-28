@@ -98,7 +98,7 @@ export default function Home() {
 
       return {
         prediction: bestBet.key,
-        probability: bestBet.prob!,
+        probability: Math.min(bestBet.prob!, 96),
         odd: parseFloat(bestBet.odd!),
       };
     };

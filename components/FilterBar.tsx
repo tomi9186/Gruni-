@@ -68,7 +68,6 @@ export function FilterBar({
 
   const canGoPrev = availableDates.indexOf(selectedDate) > 0;
   const canGoNext = availableDates.indexOf(selectedDate) < availableDates.length - 1;
-  };
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4 md:p-6">
