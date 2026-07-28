@@ -8,8 +8,8 @@ export const metadata: Metadata = {
   description: 'Analiza utakmica, predviđanja i kvote u realnom vremenu',
   icons: {
     // Prepend basePath to the icon path
-    icon: `${basePath}/gruni-logo.png`, // e.g., /Gruni-/gruni-logo.png
-    apple: `${basePath}/gruni-logo.png`, // e.g., /Gruni-/gruni-logo.png
+    icon: `${basePath}/gruni-logo.png`,
+    apple: `${basePath}/gruni-logo.png`,
   },
 }
 
