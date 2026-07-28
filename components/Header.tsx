@@ -20,7 +20,7 @@ export function Header({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Image 
-            src={`${basePath}/gruni-logo.png`} 
+            src={`${basePath}/logo.webp`} 
             alt="Gruni Logo" 
             width={130} 
             height={130}

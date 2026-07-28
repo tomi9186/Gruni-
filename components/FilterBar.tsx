@@ -84,12 +84,11 @@ export function FilterBar({
             onChange={(e) =>
               onFilterChange({ ...filters, search: e.target.value })
             }
-            className="h-10 max-w-sm"
+            className="h-10 max-w-sm text-gray-900 focus-visible:ring-transparent focus-visible:ring-offset-0"
           />
         </div>
-        <Button onClick={() => setIsExpanded(!isExpanded)} variant="outline">
-          <SlidersHorizontal className="mr-2 h-4 w-4" />
-          {isExpanded ? "Sakrij Filtere" : "Prikaži Filtere"}
+        <Button onClick={() => setIsExpanded(!isExpanded)} variant="outline" size="icon" className="h-10 w-10">
+          <SlidersHorizontal className="h-5 w-5" />
         </Button>
       </div>
 
@@ -170,8 +169,8 @@ export function FilterBar({
                   <SelectValue placeholder="Odaberite ligu..." />
                 </SelectTrigger>
                 <SelectContent className="max-h-60">
-                  <SelectItem value="all">
-                    Sve lige ({allLeagues.length})
+                  <SelectItem value="all" className="font-semibold">
+                    Sva natjecanja ({allLeagues.length})
                   </SelectItem>
                   {allLeagues.map((league) => (
                     <SelectItem key={league} value={league}>
@@ -184,7 +183,7 @@ export function FilterBar({
 
             <Button
               onClick={handleReset}
-              variant="ghost" 
+              variant="ghost"
               className="h-10"
             >
               <X className="mr-2 h-4 w-4" />

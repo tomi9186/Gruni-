@@ -436,8 +436,22 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
       {expanded && (
         <div className="mt-3 pt-3 border-t">
           <h4 className="font-semibold mb-2 text-sm text-gray-800">Sve dostupne oklade:</h4>
-          <div className="grid grid-cols-2 gap-3">
-            {allBets.map(bet => (
+          <div className="space-y-3">
+            {/* 1, X, 2 */}
+            <div className="grid grid-cols-3 gap-2">
+              {allBets.filter(b => ['1', 'X', '2'].includes(b.label)).map(bet => (
+                <BetItem key={bet.label} bet={bet} />
+              ))}
+            </div>
+            {/* 1X, X2, 12 */}
+            <div className="grid grid-cols-3 gap-2">
+              {allBets.filter(b => ['1X', 'X2', '12'].includes(b.label)).map(bet => (
+                <BetItem key={bet.label} bet={bet} />
+              ))}
+            </div>
+            {/* Other bets */}
+            <div className="grid grid-cols-2 gap-2">
+            {allBets.filter(b => !['1', 'X', '2', '1X', 'X2', '12'].includes(b.label)).map(bet => (
               <div key={bet.label} className="p-2 bg-gray-50 rounded-lg border border-gray-200 text-center">
                 <p className="font-bold text-sm text-gray-700">{bet.label}</p>
                 <div className="flex justify-center items-center gap-2 mt-1">
@@ -447,8 +461,25 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
               </div>
             ))}
           </div>
+          </div>
         </div>
       )}
     </div>
   );
 }
+
+const BetItem = ({ bet }: { bet: { label: string; prob: number | null; odd: string | undefined } }) => (
+  <div className="p-2 bg-gray-50 rounded-lg border border-gray-200 text-center">
+    <p className="font-bold text-sm text-gray-700">{bet.label}</p>
+    <div className="flex justify-center items-center gap-2 mt-1">
+      {bet.prob !== null && (
+        <Badge variant="secondary" className="text-xs">
+          {bet.prob}%
+        </Badge>
+      )}
+      <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-xs">
+        {parseFloat(bet.odd!).toFixed(2)}
+      </Badge>
+    </div>
+  </div>
+);
