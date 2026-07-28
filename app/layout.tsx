@@ -1,14 +1,15 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ''
 
 export const metadata: Metadata = {
   title: 'Gruni!',
   description: 'Analiza utakmica, predviđanja i kvote u realnom vremenu',
   icons: {
-    icon: `${basePath}/gruni-logo.png`,
-    apple: `${basePath}/gruni-logo.png`,
+    // Prepend basePath to the icon path
+    icon: `${basePath}/gruni-logo.png`, // e.g., /Gruni-/gruni-logo.png
+    apple: `${basePath}/gruni-logo.png`, // e.g., /Gruni-/gruni-logo.png
   },
 }
 
