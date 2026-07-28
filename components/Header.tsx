@@ -9,6 +9,8 @@ interface HeaderProps {
   isLoading: boolean;
 }
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 export function Header({
   isLocal,
   isLoading,
@@ -18,7 +20,7 @@ export function Header({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Image 
-            src="/gruni-logo.png" 
+            src={`${basePath}/gruni-logo.png`} 
             alt="Gruni Logo" 
             width={90} 
             height={90}
