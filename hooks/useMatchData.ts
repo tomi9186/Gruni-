@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { Match } from "@/lib/types";
-
-export function useMatchData(date: string) {
+import { useRouter } from "next/navigation";
+export function useMatchData(date: string, basePath: string) {
   const [data, setData] = useState<Match[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLocal, setIsLocal] = useState(true);
 
@@ -14,8 +14,9 @@ export function useMatchData(date: string) {
       setIsLoading(true);
       setError(null);
 
+      const path = `${basePath}/data/matches_${date}.json`;
       try {
-        const response = await fetch(`/data/matches_${date}.json`);
+        const response = await fetch(path);
         if (!response.ok) throw new Error("Failed to load local data");
         const json = await response.json();
         setData(json.data || json);
@@ -29,7 +30,7 @@ export function useMatchData(date: string) {
     };
 
     loadData();
-  }, [date]);
+  }, [date, basePath]);
 
   return {
     data,

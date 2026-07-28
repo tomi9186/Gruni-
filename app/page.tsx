@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/Header";
 import { FilterBar } from "@/components/FilterBar";
 import { MatchesTable } from "@/components/MatchesTable";
@@ -57,8 +58,10 @@ const checkPredictionCorrect = (match: Match): boolean | null => {
 export default function Home() {
   const defaultDate = "2026-07-27";
   const [selectedDate, setSelectedDate] = useState(defaultDate);
+  const router = useRouter();
+  // basePath will be '/Gruni-' in production and '' in development
   const { data, isLoading, error, isLocal } =
-    useMatchData(defaultDate);
+    useMatchData(defaultDate, (router as any).basePath || "");
 
   const [filters, setFilters] = useState<FilterState>({
     search: "",
