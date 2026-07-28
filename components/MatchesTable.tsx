@@ -119,7 +119,7 @@ export function MatchesTable({
       {/* Mobile Sort Controls */}
       <div className="md:hidden mb-4 flex items-center gap-2">
         <ShadSelect value={sortBy} onValueChange={(value) => onSort(value as any)}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full text-gray-900">
             <SelectValue placeholder="Sortiraj po..." />
           </SelectTrigger>
           <SelectContent>
@@ -384,7 +384,7 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
       </div>
 
       {/* Teams and Form */}
-      <div className="text-sm font-semibold text-center my-2">
+      <div className="text-sm font-semibold text-center my-2 text-gray-900">
         {match.home_team.name}
         <span className="font-normal text-gray-500 text-xs mx-2">vs</span>
         {match.away_team.name}

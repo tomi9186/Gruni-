@@ -10,6 +10,7 @@ export const metadata: Metadata = {
     icon: `${basePath}/logo.webp`,
     apple: `${basePath}/logo.webp`,
   },
+  manifest: `${basePath}/manifest.json`,
 }
 
 export const viewport: Viewport = {
