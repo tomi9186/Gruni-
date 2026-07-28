@@ -109,10 +109,15 @@ export default function Home() {
       return odds >= filters.minOdds && odds <= filters.maxOdds;
     });
 
-    // Probability filter
+    // Probability filter - use the highest probability from all outcomes
     filtered = filtered.filter((match) => {
-      const winProb = getWinProbability(match);
-      return winProb >= filters.minProbability;
+      const probs = [
+        match.probabilities?.home_win || 0,
+        match.probabilities?.away_win || 0,
+        match.probabilities?.draw || 0,
+      ];
+      const maxProb = Math.max(...probs);
+      return maxProb >= filters.minProbability;
     });
 
     // Time filter
