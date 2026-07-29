@@ -31,8 +31,8 @@ export default function Home() {
   });
 
   const [sortBy, setSortBy] = useState<
-    "time" | "league" | "probability" | "odds"
-  >("time");
+    "Vrijeme početka" | "Liga" | "Vjerojatnost" | "Kvota"
+  >("Vrijeme početka");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   // Get all unique leagues for the dropdown
@@ -193,19 +193,19 @@ export default function Home() {
       let bVal: any;
 
       switch (sortBy) {
-        case "time":
+        case "Vrijeme početka":
           aVal = new Date(a.kickoff).getTime();
           bVal = new Date(b.kickoff).getTime();
           break;
-        case "league":
+        case "Liga":
           aVal = a.competition.name;
           bVal = b.competition.name;
           break;
-        case "probability":
+        case "Vjerojatnost":
           aVal = getWinProbability(a);
           bVal = getWinProbability(b);
           break;
-        case "odds":
+        case "Kvota":
           aVal = getMainOdds(a);
           bVal = getMainOdds(b);
           break;
@@ -225,7 +225,7 @@ export default function Home() {
     return sorted;
   }, [filteredMatches, sortBy, sortOrder, getWinProbability, getMainOdds]);
 
-  const handleSort = (field: "time" | "league" | "probability" | "odds") => {
+  const handleSort = (field: "Vrijeme početka" | "Liga" | "Vjerojatnost" | "Kvota") => {
     if (sortBy === field) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {

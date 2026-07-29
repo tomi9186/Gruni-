@@ -156,7 +156,7 @@ export function FilterBar({
                 Liga
               </label>
               <Select
-                value={filters.selectedLeagues.length === allLeagues.length ? "all" : filters.selectedLeagues.length === 1 ? filters.selectedLeagues[0] : "custom"}
+                value={filters.selectedLeagues.length >= allLeagues.length && allLeagues.length > 0 ? "all" : filters.selectedLeagues.length === 1 ? filters.selectedLeagues[0] : "custom"}
                 onValueChange={(value) => {
                   if (value === "all") {
                     onFilterChange({ ...filters, selectedLeagues: allLeagues });

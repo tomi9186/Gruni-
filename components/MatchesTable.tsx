@@ -22,7 +22,7 @@ import {
 
 interface MatchesTableProps {
   matches: Match[];
-  sortBy: "time" | "league" | "probability" | "odds";
+  sortBy: "Vrijeme početka" | "Liga" | "Vjerojatnost" | "Kvota";
   sortOrder: "asc" | "desc";
   onSort: (field: "time" | "league" | "probability" | "odds") => void;
   getMainPrediction: (match: Match) => { prediction: string; probability: number; odd: number };
@@ -123,10 +123,10 @@ export function MatchesTable({
             <SelectValue placeholder="Sortiraj po..." />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="time">Vrijeme početka</SelectItem>
-            <SelectItem value="probability">Vjerojatnost</SelectItem>
-            <SelectItem value="odds">Kvota</SelectItem>
-            <SelectItem value="league">Liga</SelectItem>
+            <SelectItem value="Vrijeme početka">Vrijeme početka</SelectItem>
+            <SelectItem value="Vjerojatnost">Vjerojatnost</SelectItem>
+            <SelectItem value="Kvota">Kvota</SelectItem>
+            <SelectItem value="Liga">Liga</SelectItem>
           </SelectContent>
         </ShadSelect>
         <Button
@@ -144,17 +144,17 @@ export function MatchesTable({
           <TableHeader className="sticky top-0 z-10 bg-gray-50/80 backdrop-blur-sm">
             <TableRow className="border-b border-gray-200 bg-gray-50">
               <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
-                <SortHeader label="Vrijeme & Status" field="time" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
+                <SortHeader label="Vrijeme & Status" field="Vrijeme početka" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
               </TableHead>
               <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
-                <SortHeader label="Liga & Timovi" field="league" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
+                <SortHeader label="Liga & Timovi" field="Liga" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
               </TableHead>
               <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">Predviđanje / Tip</TableHead>
               <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
-                <SortHeader label="Vjerojatnost %" field="probability" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
+                <SortHeader label="Vjerojatnost %" field="Vjerojatnost" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
               </TableHead>
               <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
-                <SortHeader label="Kvota (Koef.)" field="odds" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
+                <SortHeader label="Kvota (Koef.)" field="Kvota" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
               </TableHead>
               <TableHead className="px-1 py-3 text-center sm:px-2">
                 <span className="sr-only">Proširi</span>
@@ -374,7 +374,7 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
       {/* Card Header */}
       <div className="flex justify-between items-center text-xs mb-2">
         <div className="font-semibold text-gray-700">
-          <p>{match.competition.name}</p>
+          <p>{match.competition.country} - {match.competition.name}</p>
           <p className="text-gray-500 font-normal">{match.competition.country}</p>
         </div>
         <div className="text-right">
