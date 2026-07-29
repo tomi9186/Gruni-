@@ -50,7 +50,7 @@ jobs:
         run: |
           FETCH_DATE=${{ steps.date_step.outputs.FETCH_DATE }}
           FILE_PATH="public/data/matches_${FETCH_DATE}.json"
-          API_URL="https://betminer.p.rapidapi.com/bm/v3/matches/${FETCH_DATE}?league_id=71&country=England&status=NS"
+          API_URL="https://betminer.p.rapidapi.com/bm/v3/matches/${FETCH_DATE}"
 
           echo "Fetching data for $FETCH_DATE"
           echo "Saving to $FILE_PATH"
