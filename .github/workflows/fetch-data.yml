@@ -1,0 +1,78 @@
+name: Fetch Daily Match Data
+
+on:
+  schedule:
+    # Vremena su u UTC.
+    - cron: '0 4 * * *'  # U 4:00 UTC, dohvati za jučer
+    - cron: '0 10 * * *' # U 10:00 UTC, dohvati za danas
+    - cron: '0 19 * * *' # U 19:00 UTC, dohvati za danas
+    - cron: '0 20 * * *' # U 20:00 UTC, dohvati za sutra
+    - cron: '0 23 * * *' # U 23:00 UTC, dohvati za prekosutra
+  workflow_dispatch: # Omogućuje ručno pokretanje
+
+jobs:
+  fetch-and-commit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Determine date to fetch
+        id: date_step
+        run: |
+          SCHEDULE_HOUR=$(date -u +'%H')
+          OFFSET=0
+          if [[ "$SCHEDULE_HOUR" == "04" ]]; then
+            OFFSET=-1
+          elif [[ "$SCHEDULE_HOUR" == "10" ]]; then
+            OFFSET=0
+          elif [[ "$SCHEDULE_HOUR" == "19" ]]; then
+            OFFSET=0
+          elif [[ "$SCHEDULE_HOUR" == "20" ]]; then
+            OFFSET=1
+          elif [[ "$SCHEDULE_HOUR" == "23" ]]; then
+            OFFSET=2
+          fi
+          FETCH_DATE=$(date -u -d "$OFFSET days" +'%Y-%m-%d')
+          echo "FETCH_DATE=$FETCH_DATE" >> $GITHUB_OUTPUT
+
+      - name: Fetch data from API
+        id: fetch_api
+        run: |
+          FETCH_DATE=${{ steps.date_step.outputs.FETCH_DATE }}
+          FILE_PATH="public/data/matches_${FETCH_DATE}.json"
+          API_URL="https://betminer.p.rapidapi.com/bm/v3/matches/${FETCH_DATE}?league_id=71&country=England&status=NS"
+
+          echo "Fetching data for $FETCH_DATE"
+          echo "Saving to $FILE_PATH"
+
+          # Dohvaćanje podataka i spremanje u datoteku
+          curl --request GET \
+            --url "$API_URL" \
+            --header 'x-rapidapi-host: betminer.p.rapidapi.com' \
+            --header 'x-rapidapi-key: ${{ secrets.RAPIDAPI_KEY }}' \
+            --header 'Content-Type: application/json' \
+            --output "$FILE_PATH"
+
+      - name: Commit and push if there are changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+          # Dodaj sve promjene u public/data direktoriju
+          git add public/data/
+          
+          # Provjeri ima li promjena za commit
+          if ! git diff --staged --quiet; then
+            FETCH_DATE=${{ steps.date_step.outputs.FETCH_DATE }}
+            git commit -m "chore: Update match data for ${FETCH_DATE}"
+            git push
+          else
+            echo "No changes to commit."
+          fi
