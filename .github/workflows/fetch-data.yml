@@ -33,11 +33,11 @@ jobs:
           OFFSET=0
           if [[ "$SCHEDULE_HOUR" == "04" ]]; then
             OFFSET=-1
-          elif [[ "$SCHEDULE_HOUR" == "10" ]]; then
+          elif [[ "$SCHEDULE_HOUR" == "06" ]]; then
             OFFSET=0
-          elif [[ "$SCHEDULE_HOUR" == "19" ]]; then
+          elif [[ "$SCHEDULE_HOUR" == "12" ]]; then
             OFFSET=0
-          elif [[ "$SCHEDULE_HOUR" == "20" ]]; then
+          elif [[ "$SCHEDULE_HOUR" == "22" ]]; then
             OFFSET=1
           elif [[ "$SCHEDULE_HOUR" == "23" ]]; then
             OFFSET=2
