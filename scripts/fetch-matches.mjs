@@ -329,18 +329,24 @@ async function main() {
   const fixtures = fixturesRes.response || [];
   console.log(`Found ${fixtures.length} fixtures.`);
 
-  // Fetch odds (up to 5 pages to keep API usage very low)
+  // Fetch odds (API-Football free plan caps page parameter at 3)
   const oddsMap = new Map();
-  for (let page = 1; page <= 5; page++) {
-    const oddsRes = await apiFetch(`/odds?date=${FETCH_DATE}&page=${page}`);
-    for (const item of oddsRes.response || []) {
-      const parsed = parseOddsForFixture(item.bookmakers);
-      if (parsed) {
-        oddsMap.set(item.fixture.id, parsed);
+  for (let page = 1; page <= 3; page++) {
+    try {
+      const oddsRes = await apiFetch(`/odds?date=${FETCH_DATE}&page=${page}`);
+      for (const item of oddsRes.response || []) {
+        const parsed = parseOddsForFixture(item.bookmakers);
+        if (parsed) {
+          oddsMap.set(item.fixture.id, parsed);
+        }
       }
+      const totalPages = oddsRes.paging?.total || 1;
+      if (page >= totalPages) break;
+    } catch (err) {
+      if (page === 1) throw err;
+      console.warn(`⚠️ Stopping odds pagination at page ${page}:`, err.message);
+      break;
     }
-    const totalPages = oddsRes.paging?.total || 1;
-    if (page >= totalPages) break;
   }
   console.log(`Loaded odds for ${oddsMap.size} fixtures.`);
 
