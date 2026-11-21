@@ -37,7 +37,7 @@ jobs:
             SCHEDULE_HOUR=$(date -u +'%H')
             if [[ "$SCHEDULE_HOUR" == "03" ]]; then
               YESTERDAY=$(date -u -d "-1 days" +'%Y-%m-%d')
-              FETCH_DATE="$YESTERDAY" node scripts/fetch-matches.mjs
+              UPDATE_SCORES_ONLY=true FETCH_DATE="$YESTERDAY" node scripts/fetch-matches.mjs
             else
               TODAY=$(date -u +'%Y-%m-%d')
               TOMORROW=$(date -u -d "+1 days" +'%Y-%m-%d')

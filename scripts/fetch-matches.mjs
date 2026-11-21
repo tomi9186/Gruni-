@@ -323,14 +323,52 @@ function updateManifest() {
   console.log(`📋 Updated manifest.json with ${dates.length} dates.`);
 }
 
+const UPDATE_SCORES_ONLY = process.env.UPDATE_SCORES_ONLY === "true";
+
 async function main() {
   console.log(`⚽ Fetching fixtures for ${FETCH_DATE} from API-Football...`);
   const fixturesRes = await apiFetch(`/fixtures?date=${FETCH_DATE}`);
   const fixtures = fixturesRes.response || [];
   console.log(`Found ${fixtures.length} fixtures.`);
 
-  // Fetch odds (API-Football free plan caps page parameter at 3)
+  // Fast 1-request path for updating yesterday's final scores without losing pre-match odds
+  if (UPDATE_SCORES_ONLY && fs.existsSync(OUTPUT_FILE)) {
+    try {
+      const existing = JSON.parse(fs.readFileSync(OUTPUT_FILE, "utf8"));
+      const existingMatches = Array.isArray(existing.data) ? existing.data : [];
+      if (existingMatches.length > 0) {
+        const fixtureById = new Map(fixtures.map((f) => [f.fixture.id, f]));
+        let updatedCount = 0;
+        for (const m of existingMatches) {
+          const f = fixtureById.get(m.match_id);
+          if (f) {
+            m.status = f.fixture.status.short || m.status;
+            m.minute = f.fixture.status.elapsed ?? m.minute;
+            m.score = {
+              home: f.goals.home ?? 0,
+              away: f.goals.away ?? 0,
+              ht_home: f.score?.halftime?.home ?? 0,
+              ht_away: f.score?.halftime?.away ?? 0,
+            };
+            updatedCount++;
+          }
+        }
+        fs.writeFileSync(
+          OUTPUT_FILE,
+          JSON.stringify({ success: true, data: existingMatches })
+        );
+        console.log(`✅ Updated scores for ${updatedCount} existing matches (1 API call).`);
+        updateManifest();
+        return;
+      }
+    } catch {
+      // Fallback to full fetch if existing file is unreadable
+    }
+  }
+
+  // 1) Fetch general odds (API-Football free plan caps page parameter at 3)
   const oddsMap = new Map();
+  let totalOddsPages = 1;
   for (let page = 1; page <= 3; page++) {
     try {
       const oddsRes = await apiFetch(`/odds?date=${FETCH_DATE}&page=${page}`);
@@ -340,17 +378,52 @@ async function main() {
           oddsMap.set(item.fixture.id, parsed);
         }
       }
-      const totalPages = oddsRes.paging?.total || 1;
-      if (page >= totalPages) break;
+      totalOddsPages = oddsRes.paging?.total || 1;
+      if (page >= totalOddsPages) break;
     } catch (err) {
       if (page === 1) throw err;
       console.warn(`⚠️ Stopping odds pagination at page ${page}:`, err.message);
       break;
     }
   }
+
+  // 2) If there were more than 3 pages of odds, fetch remaining leagues individually (bookmaker=8 Bet365)
+  // Each league on a single day is <= 1-2 pages, bypassing the global page=3 limit!
+  if (totalOddsPages > 3) {
+    const missingLeagues = new Map();
+    for (const f of fixtures) {
+      if (oddsMap.has(f.fixture.id)) continue;
+      const key = `${f.league.id}-${f.league.season}`;
+      if (!missingLeagues.has(key)) {
+        missingLeagues.set(key, { id: f.league.id, season: f.league.season, count: 0 });
+      }
+      missingLeagues.get(key).count++;
+    }
+
+    // Prioritize leagues with the most fixtures today (cap at 22 extra calls per date)
+    const topMissingLeagues = Array.from(missingLeagues.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 22);
+
+    for (const { id, season } of topMissingLeagues) {
+      try {
+        const lOddsRes = await apiFetch(
+          `/odds?league=${id}&season=${season}&date=${FETCH_DATE}&bookmaker=8`
+        );
+        for (const item of lOddsRes.response || []) {
+          if (!oddsMap.has(item.fixture.id)) {
+            const parsed = parseOddsForFixture(item.bookmakers);
+            if (parsed) oddsMap.set(item.fixture.id, parsed);
+          }
+        }
+      } catch {
+        // Ignore individual league odds errors
+      }
+    }
+  }
   console.log(`Loaded odds for ${oddsMap.size} fixtures.`);
 
-  // Collect unique leagues that have odds so we can fetch standings (capped at 25 leagues)
+  // Collect unique leagues that have odds so we can fetch standings (capped at 20 leagues)
   const leagueKeys = new Map();
   for (const f of fixtures) {
     if (!oddsMap.has(f.fixture.id)) continue;
@@ -358,7 +431,7 @@ async function main() {
     if (!leagueKeys.has(key)) {
       leagueKeys.set(key, { id: f.league.id, season: f.league.season });
     }
-    if (leagueKeys.size >= 25) break;
+    if (leagueKeys.size >= 20) break;
   }
 
   // teamStatsMap: `${leagueId}-${teamId}` -> { goalsForAvg, goalsAgainstAvg, form }
