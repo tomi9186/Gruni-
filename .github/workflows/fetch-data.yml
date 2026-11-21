@@ -3,18 +3,18 @@ name: Fetch Daily Match Data
 on:
   schedule:
     # Vremena su u UTC.
-    - cron: '0 4 * * *'  # U 4:00 UTC, dohvati za jučer
-    - cron: '0 6 * * *' # U 10:00 UTC, dohvati za danas
-    - cron: '0 12 * * *' # U 19:00 UTC, dohvati za danas
-    - cron: '0 22 * * *' # U 20:00 UTC, dohvati za sutra
-    - cron: '0 23 * * *' # U 23:00 UTC, dohvati za prekosutra
-  workflow_dispatch: # Omogućuje ručno pokretanje
+    - cron: '0 3 * * *' # U 03:00 UTC: ažuriraj jučerašnje konačne rezultate (FT)
+    - cron: '0 6 * * *' # U 06:00 UTC: dohvati današnju i sutrašnju ponudu
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Datum (YYYY-MM-DD, opcionalno - prazno za danas i sutra)'
+        required: false
 
 jobs:
   fetch-and-commit:
     runs-on: ubuntu-latest
     permissions:
-      # Dozvola za pisanje u repozitorij (za git push)
       contents: write
 
     steps:
@@ -26,55 +26,35 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Determine date to fetch
-        id: date_step
+      - name: Fetch and calculate AI match probabilities
+        env:
+          API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          SCHEDULE_HOUR=$(date -u +'%H')
-          OFFSET=0
-          if [[ "$SCHEDULE_HOUR" == "04" ]]; then
-            OFFSET=-1
-          elif [[ "$SCHEDULE_HOUR" == "06" ]]; then
-            OFFSET=0
-          elif [[ "$SCHEDULE_HOUR" == "12" ]]; then
-            OFFSET=0
-          elif [[ "$SCHEDULE_HOUR" == "22" ]]; then
-            OFFSET=0
-          elif [[ "$SCHEDULE_HOUR" == "23" ]]; then
-            OFFSET=1
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            FETCH_DATE="${{ github.event.inputs.date }}" node scripts/fetch-matches.mjs
+          else
+            SCHEDULE_HOUR=$(date -u +'%H')
+            if [[ "$SCHEDULE_HOUR" == "03" ]]; then
+              YESTERDAY=$(date -u -d "-1 days" +'%Y-%m-%d')
+              FETCH_DATE="$YESTERDAY" node scripts/fetch-matches.mjs
+            else
+              TODAY=$(date -u +'%Y-%m-%d')
+              TOMORROW=$(date -u -d "+1 days" +'%Y-%m-%d')
+              FETCH_DATE="$TODAY" node scripts/fetch-matches.mjs
+              FETCH_DATE="$TOMORROW" node scripts/fetch-matches.mjs
+            fi
           fi
-          FETCH_DATE=$(date -u -d "$OFFSET days" +'%Y-%m-%d')
-          echo "FETCH_DATE=$FETCH_DATE" >> $GITHUB_OUTPUT
-
-      - name: Fetch data from API
-        id: fetch_api
-        run: |
-          FETCH_DATE=${{ steps.date_step.outputs.FETCH_DATE }}
-          FILE_PATH="public/data/matches_${FETCH_DATE}.json"
-          API_URL="https://betminer.p.rapidapi.com/bm/v3/matches/${FETCH_DATE}"
-
-          echo "Fetching data for $FETCH_DATE"
-          echo "Saving to $FILE_PATH"
-
-          # Dohvaćanje podataka i spremanje u datoteku
-          curl --request GET \
-            --url "$API_URL" \
-            --header 'x-rapidapi-host: betminer.p.rapidapi.com' \
-            --header 'x-rapidapi-key: ${{ secrets.RAPIDAPI_KEY }}' \
-            --header 'Content-Type: application/json' \
-            --output "$FILE_PATH"
 
       - name: Commit and push if there are changes
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          # Dodaj sve promjene u public/data direktoriju
+
           git add public/data/
-          
-          # Provjeri ima li promjena za commit
+
           if ! git diff --staged --quiet; then
-            FETCH_DATE=${{ steps.date_step.outputs.FETCH_DATE }}
-            git commit -m "chore: Update match data for ${FETCH_DATE}"
+            git commit -m "chore: Update match data and AI probabilities"
             git push
           else
             echo "No changes to commit."

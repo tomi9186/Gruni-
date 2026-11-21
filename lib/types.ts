@@ -76,18 +76,20 @@ export interface AsianOdds {
 export interface Match {
   match_id: number;
   kickoff: string;
-  status: "FT" | "LIVE" | "NS" | "PST" | "CANC" | "ABD" | "AWD" | "WO";
+  status: "FT" | "LIVE" | "NS" | "PST" | "CANC" | "ABD" | "AWD" | "WO" | string;
   minute: number | null;
   home_team: Team;
   away_team: Team;
   competition: Competition;
   score: Score;
-  probabilities: Probabilities;
-  predictions: Predictions;
-  odds: Odds;
+  probabilities: Probabilities | null;
+  predictions: Predictions | null;
+  odds: Odds | null;
   fixture_slug: string;
-  form: Form;
-  asian_odds: AsianOdds;
+  form?: Form;
+  asian_odds?: AsianOdds | null;
+  ai_reasoning?: string;
+  risk_level?: "Nizak" | "Srednji" | "Visok";
 }
 
 export interface FilterState {
@@ -95,6 +97,8 @@ export interface FilterState {
   minOdds: number;
   maxOdds: number;
   minProbability: number;
+  minValue: number;
+  onlyValueBets: boolean;
   minTime: number; // 0-1440 (minutes from 00:00)
   maxTime: number; // 0-1440 (minutes from 00:00)
   selectedLeagues: string[]; // competition.name array

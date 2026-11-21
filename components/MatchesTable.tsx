@@ -12,20 +12,23 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Match, Predictions } from "@/lib/types";
+import { Match } from "@/lib/types";
+import { MainPredictionResult } from "@/lib/betting";
 import {
   ArrowUp,
   ArrowDown,
-  ArrowUpDown,
   ChevronDown,
+  Sparkles,
 } from "lucide-react";
+
+export type SortField = "Vrijeme početka" | "Liga" | "Vjerojatnost" | "Kvota" | "Value";
 
 interface MatchesTableProps {
   matches: Match[];
-  sortBy: "Vrijeme početka" | "Liga" | "Vjerojatnost" | "Kvota";
+  sortBy: SortField;
   sortOrder: "asc" | "desc";
-  onSort: (field: "time" | "league" | "probability" | "odds") => void;
-  getMainPrediction: (match: Match) => { prediction: string; probability: number; odd: number };
+  onSort: (field: SortField) => void;
+  getMainPrediction: (match: Match) => MainPredictionResult;
   checkPredictionCorrect: (match: Match) => boolean | null;
 }
 
@@ -126,6 +129,7 @@ export function MatchesTable({
             <SelectItem value="Vrijeme početka">Vrijeme početka</SelectItem>
             <SelectItem value="Vjerojatnost">Vjerojatnost</SelectItem>
             <SelectItem value="Kvota">Kvota</SelectItem>
+            <SelectItem value="Value">Value (EV%)</SelectItem>
             <SelectItem value="Liga">Liga</SelectItem>
           </SelectContent>
         </ShadSelect>
@@ -155,6 +159,9 @@ export function MatchesTable({
               </TableHead>
               <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
                 <SortHeader label="Kvota (Koef.)" field="Kvota" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
+              </TableHead>
+              <TableHead className="px-2 py-3 text-left sm:px-4 md:px-6">
+                <SortHeader label="Value (EV)" field="Value" currentSort={sortBy} currentOrder={sortOrder} onSort={onSort} />
               </TableHead>
               <TableHead className="px-1 py-3 text-center sm:px-2">
                 <span className="sr-only">Proširi</span>
@@ -198,7 +205,7 @@ export function MatchesTable({
 
 function MatchRow({ match, mainPrediction, predictionResult, isEven }: { 
   match: Match, 
-  mainPrediction: { prediction: string; probability: number; odd: number },
+  mainPrediction: MainPredictionResult,
   predictionResult: boolean | null,
   isEven: boolean 
 }) {
@@ -209,15 +216,15 @@ function MatchRow({ match, mainPrediction, predictionResult, isEven }: {
   );
 
   const allBets = [
-    { label: "1", prob: match.probabilities?.home_win, odd: match.odds?.home_win },
-    { label: "X", prob: match.probabilities?.draw, odd: match.odds?.draw },
-    { label: "2", prob: match.probabilities?.away_win, odd: match.odds?.away_win },
-    { label: "Oba daju gol", prob: match.probabilities?.btts, odd: match.odds?.btts_yes },
-    { label: "Više od 1.5", prob: match.probabilities?.over_15, odd: match.odds?.over_15 },
-    { label: "Više od 2.5", prob: match.probabilities?.over_25, odd: match.odds?.over_25 },
-    { label: "Više od 3.5", prob: match.probabilities?.over_35, odd: match.odds?.over_35 },
-    { label: "1. pol 0.5+", prob: match.probabilities?.fh_over_05, odd: match.odds?.fh_over_05 },
-    { label: "1. pol 1.5+", prob: match.probabilities?.fh_over_15, odd: match.odds?.fh_over_15 },
+    { label: "1", prob: match.probabilities?.home_win ?? null, odd: match.odds?.home_win },
+    { label: "X", prob: match.probabilities?.draw ?? null, odd: match.odds?.draw },
+    { label: "2", prob: match.probabilities?.away_win ?? null, odd: match.odds?.away_win },
+    { label: "Oba daju gol", prob: match.probabilities?.btts ?? null, odd: match.odds?.btts_yes },
+    { label: "Više od 1.5", prob: match.probabilities?.over_15 ?? null, odd: match.odds?.over_15 },
+    { label: "Više od 2.5", prob: match.probabilities?.over_25 ?? null, odd: match.odds?.over_25 },
+    { label: "Više od 3.5", prob: match.probabilities?.over_35 ?? null, odd: match.odds?.over_35 },
+    { label: "1. pol 0.5+", prob: match.probabilities?.fh_over_05 ?? null, odd: match.odds?.fh_over_05 },
+    { label: "1. pol 1.5+", prob: match.probabilities?.fh_over_15 ?? null, odd: match.odds?.fh_over_15 },
     { label: "1X", prob: null, odd: match.odds?.dc_1x },
     { label: "X2", prob: null, odd: match.odds?.dc_x2 },
     { label: "12", prob: null, odd: match.odds?.dc_12 },
@@ -258,12 +265,14 @@ function MatchRow({ match, mainPrediction, predictionResult, isEven }: {
                 <span className="font-normal text-gray-500 text-xs mx-1">vs</span>
                 {match.away_team.name}
               </p>
-              <div className="flex items-center gap-1 mt-1">
-                <span className="text-xs font-medium text-gray-500">Forma:</span>
-                {match.form.home.split('').map((r, i) => <FormBadge key={`h-${i}`} result={r} />)}
-                <span className="mx-1 text-gray-300">|</span>
-                {match.form.away.split('').map((r, i) => <FormBadge key={`a-${i}`} result={r} />)}
-              </div>
+              {(match.form?.home || match.form?.away) && (
+                <div className="flex items-center gap-1 mt-1">
+                  <span className="text-xs font-medium text-gray-500">Forma:</span>
+                  {(match.form?.home || "").split('').map((r, i) => <FormBadge key={`h-${i}`} result={r} />)}
+                  <span className="mx-1 text-gray-300">|</span>
+                  {(match.form?.away || "").split('').map((r, i) => <FormBadge key={`a-${i}`} result={r} />)}
+                </div>
+              )}
             </div>
           </div>
         </TableCell>
@@ -311,6 +320,27 @@ function MatchRow({ match, mainPrediction, predictionResult, isEven }: {
           </Badge>
         </TableCell>
 
+        {/* Value (EV%) */}
+        <TableCell className="px-2 py-2 sm:py-4 sm:px-4 md:px-6">
+          <div className="space-y-1">
+            <Badge
+              className={
+                mainPrediction.valuePercent > 0
+                  ? "bg-emerald-100 text-emerald-800 font-bold"
+                  : "bg-gray-100 text-gray-600 font-medium"
+              }
+            >
+              {mainPrediction.valuePercent > 0 ? "+" : ""}
+              {mainPrediction.valuePercent.toFixed(1)}%
+            </Badge>
+            {mainPrediction.kellyPercent > 0 && (
+              <p className="text-[11px] text-emerald-700 font-medium">
+                Ulog: {mainPrediction.kellyPercent.toFixed(1)}%
+              </p>
+            )}
+          </div>
+        </TableCell>
+
         {/* All Bets Button */}
         <TableCell className="px-1 py-2 text-center sm:px-2">
           <Button variant="ghost" size="icon" className="rounded-full h-8 w-8 bg-gray-100 hover:bg-gray-200" onClick={() => setExpanded(!expanded)}>
@@ -320,20 +350,31 @@ function MatchRow({ match, mainPrediction, predictionResult, isEven }: {
       </TableRow>
       {expanded && (
         <TableRow className="bg-gray-100">
-          <TableCell colSpan={7} className="p-4">
-            <h4 className="font-semibold mb-2 text-gray-800">Sve dostupne oklade:</h4>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {allBets.map(bet => (
-                <div key={bet.label} className="p-3 bg-white rounded-lg border border-gray-200 text-center">
-                  <p className="font-bold text-gray-700">{bet.label}</p>
-                  <div className="flex justify-center items-center gap-4 mt-1">
-                    {bet.prob !== null && (
-                      <Badge variant="secondary">{bet.prob}%</Badge>
-                    )}
-                    <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">{parseFloat(bet.odd!).toFixed(2)}</Badge>
-                  </div>
+          <TableCell colSpan={7} className="p-4 space-y-4">
+            {match.ai_reasoning && (
+              <div className="rounded-lg border border-indigo-200 bg-indigo-50/70 p-3 text-sm text-indigo-950 flex items-start gap-2">
+                <Sparkles className="h-4 w-4 text-indigo-600 mt-0.5 shrink-0" />
+                <div>
+                  <span className="font-semibold">AI Analiza ({mainPrediction.riskLevel} rizik): </span>
+                  {match.ai_reasoning}
                 </div>
-              ))}
+              </div>
+            )}
+            <div>
+              <h4 className="font-semibold mb-2 text-gray-800">Sve dostupne oklade:</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {allBets.map(bet => (
+                  <div key={bet.label} className="p-3 bg-white rounded-lg border border-gray-200 text-center">
+                    <p className="font-bold text-gray-700">{bet.label}</p>
+                    <div className="flex justify-center items-center gap-4 mt-1">
+                      {bet.prob !== null && (
+                        <Badge variant="secondary">{bet.prob}%</Badge>
+                      )}
+                      <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">{parseFloat(bet.odd!).toFixed(2)}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           </TableCell>
         </TableRow>
@@ -344,22 +385,22 @@ function MatchRow({ match, mainPrediction, predictionResult, isEven }: {
 
 function MatchCard({ match, mainPrediction, predictionResult }: {
   match: Match,
-  mainPrediction: { prediction: string; probability: number; odd: number },
+  mainPrediction: MainPredictionResult,
   predictionResult: boolean | null
 }) {
   const [expanded, setExpanded] = useState(false);
   const kickoffTime = new Date(match.kickoff).toLocaleTimeString("hr-HR", { hour: "2-digit", minute: "2-digit" });
 
   const allBets = [
-    { label: "1", prob: match.probabilities?.home_win, odd: match.odds?.home_win },
-    { label: "X", prob: match.probabilities?.draw, odd: match.odds?.draw },
-    { label: "2", prob: match.probabilities?.away_win, odd: match.odds?.away_win },
-    { label: "Oba daju gol", prob: match.probabilities?.btts, odd: match.odds?.btts_yes },
-    { label: "Više od 1.5", prob: match.probabilities?.over_15, odd: match.odds?.over_15 },
-    { label: "Više od 2.5", prob: match.probabilities?.over_25, odd: match.odds?.over_25 },
-    { label: "Više od 3.5", prob: match.probabilities?.over_35, odd: match.odds?.over_35 },
-    { label: "1. pol 0.5+", prob: match.probabilities?.fh_over_05, odd: match.odds?.fh_over_05 },
-    { label: "1. pol 1.5+", prob: match.probabilities?.fh_over_15, odd: match.odds?.fh_over_15 },
+    { label: "1", prob: match.probabilities?.home_win ?? null, odd: match.odds?.home_win },
+    { label: "X", prob: match.probabilities?.draw ?? null, odd: match.odds?.draw },
+    { label: "2", prob: match.probabilities?.away_win ?? null, odd: match.odds?.away_win },
+    { label: "Oba daju gol", prob: match.probabilities?.btts ?? null, odd: match.odds?.btts_yes },
+    { label: "Više od 1.5", prob: match.probabilities?.over_15 ?? null, odd: match.odds?.over_15 },
+    { label: "Više od 2.5", prob: match.probabilities?.over_25 ?? null, odd: match.odds?.over_25 },
+    { label: "Više od 3.5", prob: match.probabilities?.over_35 ?? null, odd: match.odds?.over_35 },
+    { label: "1. pol 0.5+", prob: match.probabilities?.fh_over_05 ?? null, odd: match.odds?.fh_over_05 },
+    { label: "1. pol 1.5+", prob: match.probabilities?.fh_over_15 ?? null, odd: match.odds?.fh_over_15 },
     { label: "1X", prob: null, odd: match.odds?.dc_1x },
     { label: "X2", prob: null, odd: match.odds?.dc_x2 },
     { label: "12", prob: null, odd: match.odds?.dc_12 },
@@ -375,7 +416,6 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
       <div className="flex justify-between items-center text-xs mb-2">
         <div className="font-semibold text-gray-700">
           <p>{match.competition.country} - {match.competition.name}</p>
-          <p className="text-gray-500 font-normal">{match.competition.country}</p>
         </div>
         <div className="text-right">
           <p className="font-bold text-gray-800">{kickoffTime}</p>
@@ -389,24 +429,26 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
         <span className="font-normal text-gray-500 text-xs mx-2">vs</span>
         {match.away_team.name}
       </div>
-      <div className="flex justify-center items-center gap-1 text-xs mb-3">
-        {match.form.home.split('').map((r, i) => <FormBadge key={`h-${i}`} result={r} />)}
-        <span className="mx-2 text-gray-300">|</span>
-        {match.form.away.split('').map((r, i) => <FormBadge key={`a-${i}`} result={r} />)}
-      </div>
+      {(match.form?.home || match.form?.away) && (
+        <div className="flex justify-center items-center gap-1 text-xs mb-3">
+          {(match.form?.home || "").split('').map((r, i) => <FormBadge key={`h-${i}`} result={r} />)}
+          <span className="mx-2 text-gray-300">|</span>
+          {(match.form?.away || "").split('').map((r, i) => <FormBadge key={`a-${i}`} result={r} />)}
+        </div>
+      )}
 
       {/* Main Prediction Info */}
-      <div className="grid grid-cols-3 gap-2 text-center border-t border-b border-gray-100 py-2">
+      <div className="grid grid-cols-4 gap-2 text-center border-t border-b border-gray-100 py-2">
         <div>
           <p className="text-xs text-gray-500">Tip</p>
-          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 font-bold">
+          <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-300 font-bold text-xs">
             {translatePrediction(mainPrediction.prediction)}
           </Badge>
         </div>
         <div>
           <p className="text-xs text-gray-500">Vjer.</p>
           <Badge
-            className={`font-bold ${mainPrediction.probability >= 70
+            className={`font-bold text-xs ${mainPrediction.probability >= 70
                 ? "bg-green-100 text-green-800"
                 : mainPrediction.probability >= 50
                   ? "bg-yellow-100 text-yellow-800"
@@ -418,8 +460,21 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
         </div>
         <div>
           <p className="text-xs text-gray-500">Kvota</p>
-          <Badge className="bg-amber-100 text-amber-900 font-bold">
+          <Badge className="bg-amber-100 text-amber-900 font-bold text-xs">
             {mainPrediction.odd.toFixed(2)}
+          </Badge>
+        </div>
+        <div>
+          <p className="text-xs text-gray-500">Value</p>
+          <Badge
+            className={`text-xs ${
+              mainPrediction.valuePercent > 0
+                ? "bg-emerald-100 text-emerald-800 font-bold"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {mainPrediction.valuePercent > 0 ? "+" : ""}
+            {mainPrediction.valuePercent.toFixed(0)}%
           </Badge>
         </div>
       </div>
@@ -434,7 +489,16 @@ function MatchCard({ match, mainPrediction, predictionResult }: {
 
       {/* Expanded Content */}
       {expanded && (
-        <div className="mt-3 pt-3 border-t">
+        <div className="mt-3 pt-3 border-t space-y-3">
+          {match.ai_reasoning && (
+            <div className="rounded-lg border border-indigo-200 bg-indigo-50/70 p-2.5 text-xs text-indigo-950 flex items-start gap-2">
+              <Sparkles className="h-3.5 w-3.5 text-indigo-600 mt-0.5 shrink-0" />
+              <div>
+                <span className="font-semibold">AI ({mainPrediction.riskLevel} rizik): </span>
+                {match.ai_reasoning}
+              </div>
+            </div>
+          )}
           <h4 className="font-semibold mb-2 text-sm text-gray-800">Sve dostupne oklade:</h4>
           <div className="space-y-3">
             {/* 1, X, 2 */}

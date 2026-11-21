@@ -41,6 +41,8 @@ export function FilterBar({
       minOdds: 1.0,
       maxOdds: 10.0,
       minProbability: 0,
+      minValue: -100,
+      onlyValueBets: false,
       minTime: 0,
       maxTime: 1440,
       selectedLeagues: allLeagues,
@@ -87,9 +89,25 @@ export function FilterBar({
             className="h-10 max-w-sm text-gray-900 focus-visible:ring-transparent focus-visible:ring-offset-0"
           />
         </div>
-        <Button onClick={() => setIsExpanded(!isExpanded)} variant="outline" size="icon" className="h-10 w-10">
-          <SlidersHorizontal className="h-5 w-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() =>
+              onFilterChange({ ...filters, onlyValueBets: !filters.onlyValueBets })
+            }
+            variant={filters.onlyValueBets ? "default" : "outline"}
+            size="sm"
+            className={`h-10 text-xs font-semibold ${
+              filters.onlyValueBets
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white"
+                : "text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+            }`}
+          >
+            +EV Value Betovi
+          </Button>
+          <Button onClick={() => setIsExpanded(!isExpanded)} variant="outline" size="icon" className="h-10 w-10">
+            <SlidersHorizontal className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
 
       {isExpanded && (
@@ -126,6 +144,23 @@ export function FilterBar({
               min={0}
               max={100}
               step={1}
+              className="w-full"
+            />
+          </div>
+
+          {/* Min Value (EV%) Slider */}
+          <div>
+            <label className="mb-3 block text-sm font-medium text-gray-700">
+              Min Value (EV%): {filters.minValue <= -100 ? "Svi parovi" : `${filters.minValue > 0 ? "+" : ""}${filters.minValue}%`}
+            </label>
+            <Slider
+              value={[filters.minValue]}
+              onValueChange={(value) =>
+                onFilterChange({ ...filters, minValue: Array.isArray(value) ? value[0] : (value as number) })
+              }
+              min={-100}
+              max={50}
+              step={5}
               className="w-full"
             />
           </div>
