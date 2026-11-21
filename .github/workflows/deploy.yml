@@ -6,6 +6,10 @@ on:
   push:
     branches:
       - main
+  workflow_run:
+    workflows: ["Fetch Daily Match Data"]
+    types:
+      - completed
   # Omogućuje i ručno pokretanje iz Actions taba
   workflow_dispatch:
 
